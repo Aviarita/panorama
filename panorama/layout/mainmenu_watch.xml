@@ -7,12 +7,12 @@
 		
 	</styles>
 	<scripts>
+		<include src="file://{resources}/scripts/generated/items_event_current_generated_store.js" />
+		<include src="file://{resources}/scripts/common/licenseutil.js" />
 		<include src="file://{resources}/scripts/watchtile.js" />
 		<include src="file://{resources}/scripts/mainmenu_watch.js" />
 		<include src="file://{resources}/scripts/matchlist.js" />
         <include src="file://{resources}/scripts/matchinfo.js" />
-		<include src="file://{resources}/scripts/generated/items_event_current_generated_store.js" />
-		<include src="file://{resources}/scripts/common/licenseutil.js" />
 	</scripts>
 
 	<snippets>
@@ -56,25 +56,33 @@
 
 				<Panel id="watch-navbar" class="content-navbar content-navbar--short">
 					<Panel class="content-navbar__tabs">
-						                                                          
-						                                                                                                                                                                            
-							                                                                     
-						                       
+						                                                                                                                                                 
+						                                                         
+						<RadioButton id="WatchNavBarActiveTourament" group="WatchNavBar" onactivate="mainmenu_watch.NavigateToTab('JsActiveTournament', 'active tournament menu button');">
+							<Label class="" text="#CSGO_Tournament_Event_NameShort_16"/>
+						</RadioButton>
 						<RadioButton id="WatchNavBarButtonTournaments" group="WatchNavBar" onactivate="mainmenu_watch.NavigateToTab('JsTournaments', 'tournament menu button');">
 							<Label class="" text="#CSGO_Watch_Cat_Tournament_0"/>
 						</RadioButton>
 						<RadioButton group="WatchNavBar" onactivate="mainmenu_watch.NavigateToTab('JsYourMatches', 'yourmatches menu button');">
 							<Label class="" text="#CSGO_Watch_Cat_YourMatches"/>
 						</RadioButton>
+						<RadioButton group="WatchNavBar" onactivate="mainmenu_watch.NavigateToTab('JsDownloaded', 'downloaded menu button');">
+							<Label class="" text="#CSGO_Watch_Cat_Downloaded"/>
+						</RadioButton>						
 						<RadioButton id="WatchNavBarButtonLive" group="WatchNavBar" onactivate="mainmenu_watch.NavigateToTab('JsLive', 'live menu button');">
 							<Label class="" text="#CSGO_Watch_Cat_LiveMatches"/>
 						</RadioButton>
-						<RadioButton group="WatchNavBar" onactivate="mainmenu_watch.NavigateToTab('JsDownloaded', 'downloaded menu button');">
-							<Label class="" text="#CSGO_Watch_Cat_Downloaded"/>
-						</RadioButton>
+						<RadioButton id="WatchNavBarButtonTournaments" group="WatchNavBar" onactivate="mainmenu_watch.NavigateToTab('JsTournaments', 'tournament menu button');">
+							<Label class="" text="#CSGO_Watch_Cat_Majors"/>
+						</RadioButton>											
 						<RadioButton id="WatchNavBarButtonStreams" group="WatchNavBar" onactivate="mainmenu_watch.NavigateToTab('JsStreams', 'streams menu button');">
 							<Label class="" text="#CSGO_Watch_Cat_Streams"/>
 						</RadioButton>
+						<RadioButton id="WatchNavBarButtonEvents" group="WatchNavBar" onactivate="mainmenu_watch.NavigateToTab('JsEvents', 'events menu button');">
+							<Label class="" text="#CSGO_Watch_Cat_Events"/>
+						</RadioButton>
+
 					</Panel>
 					<Panel class="horizontal-align-right vertical-center left-right-padding">	
 						<Button class="IconButton" >
@@ -95,6 +103,7 @@
 						<Panel id="JsStreamList" class="map-selection-list horizontal-center left-right-padding"/>
 						<Label id="Message" class="Info-Message horizontal-center"/>
 					</Panel>
+					<Frame id="JsEvents" src="file://{resources}/layout/mainmenu_watch_eventsched.xml" class="WatchMenu WatchMenu--Hide" />
 					<Panel id="JsDownloaded" class="WatchMenu WatchMenu--Hide"/>
 				</Panel>
 			</Panel>

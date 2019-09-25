@@ -3,6 +3,7 @@
 		<include src="file://{resources}/styles/csgostyles.css" />
 		<include src="file://{resources}/styles/mainmenu.css" />
 		<include src="file://{resources}/styles/mainmenu_play.css" />
+		<include src="file://{resources}/styles/advertising_toggle.css" />
 	</styles>
 	<scripts>
 		<include src="file://{resources}/scripts/common/formattext.js" />
@@ -20,11 +21,12 @@
 					                                                
 				</Carousel>
 				<Panel class="map-selection-btn__gradient" hittest="false" />
-				<Label id="MapGroupNewTag" class="map-selection-info__new stratum-font hidden" text='#SFUI_Workshop_New_Map'/>
 				<Label id="MapGroupBetaTag" class="map-selection-info__new stratum-font hidden" text='#SFUI_Overwatch_Beta'/>
 				<Panel id="MapSelectionButton" class="map-selection-btn-container" hittest="false" >
 					<Panel id="MapSelectionTopRowIcons" class="map-selection-btn__top-icon-row">
-						<Image id="ActiveGroupIcon" texturewidth="24" textureheight="24" src="file://{images}/icons/ui/competitive.svg"/>
+						<Image id="ActiveGroupIcon" class="right-margin" texturewidth="24" textureheight="24" src="file://{images}/icons/ui/competitive.svg"/>
+						<Label id="MapGroupNewTag" class="map-selection-info__new stratum-font hidden" text='#SFUI_Workshop_New_Map'/>
+						<Label id="MapGroupUnrankedTag" class="map-selection-info__new map-selection-info__unranked stratum-font hidden" text='#SFUI_RankType_Modifier_Unranked'/>
 					</Panel>
 					                           
 
@@ -46,14 +48,41 @@
 				<Label class="map-selection-no-subscriptions-label" html="true" text="#CSGO_Workshop_No_Maps" />
 			</Panel>
 		</snippet>
+
+		<snippet name="SurvivalAutoSquad" >
+			<Panel class="play-menu-svl-auto-squad-toggle-container">
+				<Panel id="PlayMenuMapRotationTimer" class="play-menu-map-rotation-timer hidden">
+					<Image class="right-padding" texturewidth="-1" textureheight="20" src="file://{images}/icons/ui/clock.svg" />
+					<Label class="play-menu-map-rotation-timer-label" html="true" text="#rotating_map_timer"/>
+				</Panel>
+				<ToggleButton id="SurvivalAutoSquadToggle" class="PopupButton">
+					<Image class="" texturewidth="-1" textureheight="28" src="file://{images}/icons/ui/lobby.svg" />
+					<Label id="SurvivalAutoSquadToggleLabel" text="#SFUI_DANGERZONE_AUTO_FILL" html="true"/>
+				</ToggleButton>
+			</Panel>
+		</snippet>
+
+
+		<snippet name="MapListSection" >
+			<Panel class="map-selection-list-section">
+				<Panel id="play-maps-section-header-container" class="map-selection-list-section__header">
+					<Label id="play-maps-section-header" class="map-selection-list-section-header__text" text=""/>
+					<Button id="play-maps-section-header-more-info" class="IconButton horizontal-align-right">
+						<Image class="right-margin-medium" texturewidth="-1" textureheight="20" src="file://{images}/icons/ui/info.svg" />
+					</Button>
+				</Panel>
+				                  
+			</Panel>
+		</snippet>
+
 	</snippets>
 
-	<Panel class="full-width full-height">
-		<Panel class="mainmenu-content__container" useglobalcontext="true">
+	<Panel class="mainmenu-content__container" useglobalcontext="true" >
+		<Panel class="mainmenu-content__container mainmenu-content__container--nopadding">
 			<Panel class="content-navbar">
 				<Label id="LobbyLeaderText" class="content-navbar__title" text="#SFUI_MainMenu_PlayButton"/>
 			</Panel>
-			<Panel class="content-navbar  content-navbar--short content-navbar--dropdown">
+			<Panel class="content-navbar content-navbar--short content-navbar--dropdown">
 				<Panel class="vertical-center left-right-flow">
 					<DropDown class="PopupButton" id="PlayTopNavDropdown" menuclass="DropDownMenu Width-300" oninputsubmit="PlayMenu.PlayTopNavDropdownChanged()">
 						<Label text="#play_setting_online" id="Play-official" data-type="official" value="1"/>
@@ -72,8 +101,8 @@
 						</Panel>
 						<Label id="PrimeStatusButtonLabel" text="#SFUI_Elevated_Status_Title" html="true"/>
 					</Button>
-					
 				</Panel>
+
 			</Panel>
 			
 			<Panel class="content-navbar content-navbar--short">
@@ -130,7 +159,7 @@
 					                                                                                                
 				</Panel>
 
-				<Panel class="content-controls-actions-bar">
+				<Panel class="play-menu-controls-actions-bar">
 					<Panel class="left-right-flow vertical-center">
 						<Button id="PermissionsSettings" class="PopupButton" >
 							<Image id="PermissionsSettingsImg" texturewidth="-1" textureheight="28" src="file://{images}/icons/ui/unlockedwide.svg" />
@@ -141,12 +170,16 @@
 							<Label text="#SFUI_LEADERBOARD" />
 						</Button>
 					</Panel>
-					<Button id="StartMatchBtn" class="play-menu__playbtn play-menu__playbtn--startsearch Positive" >
-						<Label text="#SFUI_Lobby_StartMatchButton" />
-					</Button>
-					<Button id="PartyCancelBtn" class="play-menu__playbtn play-menu__playbtn--stopsearch"  >
-						<Label text="#SFUI_Lobby_Cancel_QueueMode_Search" />
-					</Button>
+					<Panel class="play-menu-controls-actions-bar__right">
+						<Panel class="play-menu-controls-action-bar__right__go-cancel">
+							<Button id="StartMatchBtn" class="play-menu__playbtn play-menu__playbtn--startsearch Positive" >
+								<Label text="#SFUI_Lobby_StartMatchButton" />
+							</Button>
+							<Button id="PartyCancelBtn" class="play-menu__playbtn play-menu__playbtn--stopsearch"  >
+								<Label text="#SFUI_Lobby_Cancel_QueueMode_Search" />
+							</Button>
+						</Panel>
+					</Panel>
 				</Panel>
 			</Panel>
 		</Panel>

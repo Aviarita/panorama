@@ -50,27 +50,16 @@
 			<Panel id="MainMenuInput">                                              
 				
 				<CSGOBlurTarget id="MainMenuCore" blurrects="ChatLinesContainerBg mainmenu-sidebar__blur-target CSGOLoadingScreen JsMainMenuNavBar eom-winner">
-					<CSGOBlurTarget id="MainMenuBackground" blurrects= "mainmenu-content__blur-target JsNewsPanel JsStorePanel JsStreamPanel">
+					<CSGOBlurTarget id="MainMenuBackground" blurrects= "mainmenu-content__blur-target JsNewsPanel id-tournament-pass-status JsStorePanel JsStreamPanel JsWatchNoticePanel">
 						<Panel class="mainmenu-vanity__vignette" hittest="false"/>
-						                                                      
 						<CSGOBackbufferImagePanel class="full-width full-height PauseMenuModeOnly" />
-
-						            
-						                                                       
-						            
-						
-						            
 						<Panel id="MainMenuMovieParent">
-							                                                                                      
 						</Panel>
-						                
 						<Panel id="MainMenuVanityParent">
-							                                                 
 						</Panel>
 					</CSGOBlurTarget>
 
 					<Panel id="JsNewsContainer" class="mainmenu_news_container hidden MainMenuModeOnly" >
-						                                                       
 					</Panel >
 
 					<Panel id="JsMainMenuContent" class="mainmenu-content mainmenu-content--offscreen">
@@ -78,9 +67,8 @@
 							<Panel id="mainmenu-content__blur-target"/>
 						</Panel>
 						                                                                                    
-					</Panel >
+					</Panel>
 				</CSGOBlurTarget>
-
 
 				<CSGOBlurTarget id="MainMenuNavBarLeft" class="mainmenu-navbar-container" blurrects="CSGOLoadingScreen">
 	
@@ -102,6 +90,7 @@
 									onmouseout="UiToolkitAPI.HideTextTooltip();">
 							<Image textureheight="56" texturewidth="-1" src="file://{images}/icons/ui/play_circle.svg" />
 						</RadioButton>
+						<Frame class="MainMenuModeOnly" src="file://{resources}/layout/advertising_toggle.xml" />
 						                                                    
 						<RadioButton id="MainMenuNavBarResumeGame"
 									class="mainmenu-navbar__btn-small PauseMenuModeOnly"
@@ -161,10 +150,13 @@
 						<RadioButton id="MainMenuNavBarWatch"
 									class="mainmenu-navbar__btn-small MainMenuModeOnly"
 									group="NavBar"
-									onactivate="MainMenu.NavigateToTab('JsWatch', 'mainmenu_watch');"
+									onactivate="MainMenu.NavigateToTab('JsWatch', 'mainmenu_watch'); MainMenu.WatchBtnPressedUpdateAlert();"
 									onmouseover="UiToolkitAPI.ShowTextTooltip( 'MainMenuNavBarWatch', '#tooltip_navbar_watch' );"
 									onmouseout="UiToolkitAPI.HideTextTooltip();">
 							<Image textureheight="34" texturewidth="-1" src="file://{images}/icons/ui/watch_tv.svg" />
+							<Panel id="MainMenuWatchAlert" class="navbar-btn__notification hidden">
+								<Label id="MainMenuWatchAlertText" class="navbar-btn__notification-text" text="#Store_Price_New"/>
+							</Panel>
 						</RadioButton>
 						                                                 
 						<RadioButton id="MainMenuNavBarOverwatch"
@@ -248,8 +240,6 @@
 								class="mainmenu-sidebar__container"
 								onmouseover="MainMenu.ExpandSidebar()"
 								onmouseout="MainMenu.MinimizeSidebar();">
-							                                                    
-							                                               
 						</Panel>
 						<Panel class="mainmenu-sidebar__seperator"/>
 					</Panel>
