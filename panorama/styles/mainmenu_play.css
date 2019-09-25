@@ -25,14 +25,16 @@
 	transition-timing-function: ease-in-out;
 }
 
+
 .map-selection-list-all
 {
 	width: 100%;
-	height: fill-parent-flow ( 1 ); 
+	height: fill-parent-flow ( 0.5 ); 
 	flow-children: none;
 	horizontal-align: center;
+	overflow: clip squish;
 
-	padding: 0px 64px;
+	padding: 0px 8px;
 
 	background-color: contentPanelBackground;
 }
@@ -42,11 +44,108 @@
 	flow-children: none;
 }
 
+.map-selection-list VerticalScrollBar
+{
+	margin: 0px;
+}
+
+.map-selection-list .flow-down
+{
+	flow-children: down;
+}
+
+
+                                                             
+.map-selection-list--competitive-section-container
+{
+	flow-children: right;
+	overflow: clip scroll;
+	width: 100%;
+	height: fit-children;
+}
+
+.map-selection-list-section
+{
+	width: 72%;
+	height: fit-children;
+	flow-children: right-wrap;
+	overflow: clip noclip;
+	padding: 0px 16px;
+	border-right: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.AspectRatio16x9 .map-selection-list-section:not(.map-selection-list-section--single-column)
+{
+	padding-left: 90px;
+}
+
+.map-selection-list-section--single-column
+{
+	width: 28%;
+	flow-children: down;
+	border-right: 0px solid rgba(255, 255, 255, 0.00);
+	padding: 0px 16px;
+}
+
+.map-selection-list-section__header
+{
+	width: 100%;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.map-selection-list-section-header__text
+{
+	font-family: stratum2Font;
+	vertical-align:center;
+	font-weight: lighter;
+	font-size: 28px;
+	                       
+	color: white;
+}
+
+.map-selection-list-section-header__about-btn
+{
+	vertical-align: center;
+	horizontal-align: right;
+}
+
+.map-selection-list-section-header__about-btn:hover
+{
+	brightness: 1.5;
+}
+
+.map-selection-list-section-header__about-btn:disabled
+{
+	wash-color: disabledColor;
+}
+
+.map-selection-list-section-header__text.small 
+{
+	padding: 0px 8px;
+	font-size: 12px;
+	font-weight: bold;
+	font-family: stratum2Font;
+	color: baseText;
+}
+
+.map-selection-list-section-header__line
+{
+	vertical-align: center;
+	width: 80%;
+	height: 1px;
+	background-color:  gradient( linear, 0% 0%, 100% 0%, from( #ffffff77 ), to( rgba(255, 255, 255, 0) ) );
+}
+
+.map-selection-list:disabled .map-selection-list-section-header
+{
+	color: disabledColor;
+}
+
 .map-selection-btn
 {
 	width: 224px;
 	height: width-percentage(142%);
-	margin: 24px 28px 16px 0px;
+	margin: 24px 16px;
 	border: 0px solid gray;
 	box-shadow: shadowOffset;
 	tooltip-position: bottom;
@@ -56,6 +155,24 @@
 	transition-duration: .25s;
 	transition-timing-function: ease-in-out;
 }
+
+.map-selection-list-section--single-column .map-selection-btn
+{
+	horizontal-align: center;
+}
+
+.map-selection-btn.coop-map-tile
+{
+	height: 100%;
+	width: height-percentage(70%);
+}
+
+.map-selection-btn.coop-map-tile
+{
+	height: 100%;
+	width: height-percentage(70%);
+}
+
 
 .map-selection-btn--large
 {
@@ -74,26 +191,26 @@
 
 .AspectRatio4x3 .map-selection-btn--full
 {
-	width: 1100px;
+	width: 1010px;
 	height: width-percentage( 64% );
 }
 
 .AspectRatio5x4 .map-selection-btn--full
 {
-	width: 1025px;
+	width: 965px;
 	height: width-percentage( 68% );
 }
 
 .AspectRatio16x9 .map-selection-btn--full
 {
-	width: 1500px;
+	width: 1360px;
 	height: width-percentage( 47.5% );
 }
 
 .map-selection-btn--full,
 .AspectRatio16x10 .map-selection-btn--full
 {
-	width: 1350px;
+	width: 1250px;
 	height: width-percentage( 52% );
 }
 
@@ -272,7 +389,7 @@
 
 .map-selection-info__new
 {
-	padding: 4px 8px;
+	padding: 2px 8px 0px 10px;
 	background-color: blueColor;
 	color: white;
 	font-weight: medium;
@@ -280,7 +397,18 @@
 	horizontal-align: left;
 	border: 1px solid rgb(100, 180, 223);
 	brightness: 1.5;
+}
 
+.map-selection-info__new.map-selection-info__unranked
+{
+	background-color: brown;
+	border: 1px solid rgb(233, 98, 68);
+	text-transform: uppercase;
+}
+
+.map-selection-list .map-selection-btn .map-selection-info__new
+{
+	font-size: 18px;
 }
 
 ToggleButton .map-selection-info__new,
@@ -335,7 +463,8 @@ RadioButton .map-selection-info__new
 	visibility: collapse;
 }
 
-.map-selection-list.hidden
+.map-selection-list.hidden,
+.map-selection-list-coop.hidden
 {
 	opacity: 0;
 	transform: translatex( 200px );
@@ -400,6 +529,31 @@ RadioButton .map-selection-info__new
 	transition-timing-function: ease-in-out;
 }
 
+.play-menu-controls-actions-bar
+{
+	background-color: contentPanelBackground;
+	width: 100%;
+	height: 96px;
+	padding-left: 64px;
+	vertical-align: bottom;
+	border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.play-menu-controls-actions-bar__right
+{
+	flow-children :right;
+	height: 100%;
+	horizontal-align: right;
+}
+
+.play-menu-controls-action-bar__right__go-cancel
+{
+	padding-right: 64px;
+	height: 100%;
+	vertical-align: center;
+	padding-left: 16px;
+}
+
 .play-menu__playbtn
 {
 	horizontal-align: right;
@@ -417,11 +571,16 @@ RadioButton .map-selection-info__new
 	transition-timing-function: ease-in-out;
 }
 
+.play-menu__playbtn:hover
+{
+	sound: "UIPanorama.mainmenu_rollover";
+}
+
 .play-menu__playbtn.pressed
 {
 	                           
 	opacity: 0;
-	transform: scale3D( 2, 2, 2 );
+	transform: scale3D( 1.2, 2, 2 );
 
 	transition-property: opacity, box-shadow, wash-color, transform;
 	transition-duration: .25s;
@@ -604,6 +763,44 @@ RadioButton .map-selection-info__new
 	transition-timing-function: ease-in-out;
 }
 
+.play-menu-svl-auto-squad-toggle-container
+{
+	flow-children: right;
+	vertical-align: bottom;
+	horizontal-align: right;
+	margin-right: 16px;
+	width: 100%;
+}
+
+#SurvivalAutoSquadToggle.PopupButton:not(.PopupButton:disabled):selected
+{
+	wash-color: positiveColor;
+}
+
+#SurvivalAutoSquadToggle.PopupButton:not(.PopupButton:disabled)
+{
+	wash-color: warningColor;
+}
+
+.play-menu-map-rotation-timer
+{
+	flow-children: right;
+	vertical-align: center;
+	visibility: visible;
+}
+
+.play-menu-map-rotation-timer.hidden
+{
+	visibility: collapse;
+}
+
+.play-menu-map-rotation-timer-label
+{
+	font-family: stratum2Font;
+	font-weight: lighter;
+	font-size: 20px;
+}
+
 .active .play-menu-primestatus
 {
 	background-color: gradient( radial, 50% 50%, 0% 0%, 50% 50%, from( positiveColor ), color-stop(.5, positiveColor ), to( #000000) );
@@ -625,3 +822,4 @@ RadioButton .map-selection-info__new
 	horizontal-align:center;
 	wash-color:black;
 }
+

@@ -329,11 +329,8 @@ CSGOMainMenu.PopupBackgroundBlur #MainMenuInput
 
 .mainmenu-navbar__btn-play
 {
-	                                      
-	width: 72px;
-	height: 72px;
-	                                              
-	                     
+	width: 96px;
+	height: 96px;
 
 	transition-property:  wash-color, border;
 	transition-duration: .25s;
@@ -343,7 +340,6 @@ CSGOMainMenu.PopupBackgroundBlur #MainMenuInput
 .mainmenu-navbar__btn-home 
 {
 	border-bottom: 1px solid rgba(255, 255, 255, 0.25);
-	margin-bottom: 16px;
 }
 
 .mainmenu-navbar__btn-play Image
@@ -554,6 +550,15 @@ CSGOMainMenu.PopupBackgroundBlur #MainMenuInput
 	transition-property: opacity, transform;
 	transition-duration: .25s;
 	transition-timing-function: ease-in-out;
+}
+
+.mainmenu-content__container--nopadding
+{
+	padding-right:0px;
+	padding-left: 0px;
+
+	transition-property: none;
+	transition-duration: 0.0s;
 }
 
 CSGOEndOfMatch.mainmenu-content__container
