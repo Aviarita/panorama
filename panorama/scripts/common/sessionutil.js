@@ -27,7 +27,7 @@ var SessionUtil = ( function ()
 			gameMode == "coopmission" )
 			numLobbySlots = 2;
 		else if ( gameMode === "survival" )
-			numLobbySlots = 3;
+			numLobbySlots = 2;
 		return numLobbySlots;
 	};
 
@@ -49,9 +49,17 @@ var SessionUtil = ( function ()
 		return true;
 	};
 
+	var _GetNumWinsNeededForRank = function( skillgroupType )
+	{
+		if ( skillgroupType.toLowerCase() === 'survival' ) return 0;                                                              
+		if ( skillgroupType.toLowerCase() === 'dangerzone' ) return 0;                                                              
+		return 10;                                                       
+	};
+
 	return{
 		DoesGameModeHavePrimeQueue : _DoesGameModeHavePrimeQueue,
 		GetMaxLobbySlotsForGameMode: _GetMaxLobbySlotsForGameMode,
-		AreLobbyPlayersPrime: _AreLobbyPlayersPrime
+		AreLobbyPlayersPrime: _AreLobbyPlayersPrime,
+		GetNumWinsNeededForRank : _GetNumWinsNeededForRank
 	};
 })();

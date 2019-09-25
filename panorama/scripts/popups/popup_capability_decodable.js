@@ -98,7 +98,7 @@ var CapabilityDecodable = ( function()
 		_SetCaseModelImage( m_caseId );
 
 		var sRestriction = InventoryAPI.GetDecodeableRestriction( m_caseId );
-		if ( ! ( sRestriction !== undefined && sRestriction !== null && sRestriction !== '' ) )
+		if ( sRestriction !== 'restricted' )
 		{
 			_ShowPurchase(( m_keyId ) ? '' : m_keytoSellId );
 
@@ -112,7 +112,7 @@ var CapabilityDecodable = ( function()
 		_SetUpAsyncActionBar( m_caseId );
 		_SetCaseModelCamera( 1, false );
 
-		if( !ItemInfo.ItemMatchDefName( m_caseId, 'spray' ) )
+		if( !ItemInfo.ItemMatchDefName( m_caseId, 'spray' ) && !ItemInfo.ItemDefinitionNameSubstrMatch(m_caseId, 'tournament_pass_') )
 		{
 			_PlayCaseModelAnim( 'fall', 'idle' );
 			_PlayContainerSound( m_caseId, 'fall' );
@@ -422,7 +422,22 @@ var CapabilityDecodable = ( function()
 			InventoryAPI.SetItemSessionPropertyValue( m_itemFromContainer, 'recent', '1' );
 			InventoryAPI.AcknowledgeNewItembyItemID( m_itemFromContainer );
 
-			$.DispatchEvent( "InventoryItemPreview", m_itemFromContainer );
+			if ( ItemInfo.ItemDefinitionNameSubstrMatch( m_itemFromContainer, 'tournament_journal_' ) )
+			{
+				$.Schedule( 0.2, function()
+				{
+					UiToolkitAPI.ShowCustomLayoutPopupParameters(
+						'',
+						'file://{resources}/layout/popups/popup_tournament_journal.xml',
+						'journalid=' + m_itemFromContainer
+					);
+				} );
+			}
+			else
+			{
+				$.DispatchEvent( "InventoryItemPreview", m_itemFromContainer );
+			}
+
 			CapabilityDecodable.ClosePopUp();
 
 			var rarityVal = InventoryAPI.GetItemRarity( m_itemFromContainer );
@@ -660,6 +675,11 @@ var CapabilityDecodable = ( function()
 				} );
 			}
 		}
+		else if ( type === "ticket_activated" )
+		{
+			m_itemFromContainer = itemId;
+			_ShowInspect();
+		}
 	};
 
 	var _ItemAcquired = function( ItemId )
@@ -688,23 +708,8 @@ var CapabilityDecodable = ( function()
 
 	var _AcknowlegeMatchingKeys = function( matchtingKeyDefName )
 	{
-		var itemCount = InventoryAPI.GetUnacknowledgeItemsCount();
-		var newItemsList = [];
-
-		for ( var i = 0; i < itemCount; i++ )
-		{
-			var newItemId = InventoryAPI.GetUnacknowledgeItemByIndex( i );
-			newItemsList.push( newItemId );
-		}
-
-		newItemsList.forEach( itemId => 
-		{
-			if ( ItemInfo.ItemMatchDefName( itemId, matchtingKeyDefName ) )
-			{
-				InventoryAPI.AcknowledgeNewItembyItemID( itemId );
-				InventoryAPI.SetItemSessionPropertyValue( itemId, 'recent', '1' );
-			}
-		} );
+		var bShouldAcknowledge = true;
+		AcknowledgeItems.GetItemsByType( [ matchtingKeyDefName ], bShouldAcknowledge );
 	};
 
 	var _ShowUnlockAnimation = function()
@@ -745,7 +750,7 @@ var CapabilityDecodable = ( function()
 	var _GetContainerType = function(caseId) {
 		var itemDefName = ItemInfo.GetItemDefinitionName( m_caseId );
 		var slot = ItemInfo.GetSlot( m_caseId );
-		if(itemDefName && itemDefName.indexOf("spray") != -1) {
+		if(itemDefName && ( itemDefName.indexOf("spray") != -1 || itemDefName.indexOf("tournament_pass_") != -1 ) ) {
 			return 'graffiti';
 		} else if(itemDefName && itemDefName.indexOf("sticker") != -1) {
 			return 'sticker';

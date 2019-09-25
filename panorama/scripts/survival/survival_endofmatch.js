@@ -26,14 +26,14 @@
                                                                                        
                                                                                        
                                                                                       
-                                                                                      
+                                                                                                    
                                                                                       
                                                                                       
                                                                                      
                                                                                                                     
-                                                                                     
-                                                                                     
-                                                                                    
+                                                                                                   
+                                                                                                   
+                                                                                                   
           
                       
                         
@@ -104,6 +104,62 @@
               
              
                             
+                          
+                                                               
+                                                              
+                 
+              
+             
+                             
+                          
+                                                                                               
+                                                                                              
+                 
+              
+             
+                             
+                          
+                                                                                             
+                 
+              
+             
+                             
+                          
+                                                                
+                                                                                               
+                 
+              
+             
+                             
+                          
+                                                                                                
+                                                               
+                 
+              
+             
+                             
+                          
+                                                                                             
+                                                                
+                                                               
+                 
+              
+             
+                             
+                          
+                                                               
+                                                              
+                 
+              
+             
+                            
+                          
+                                                                                               
+                                                              
+                 
+              
+             
+                             
                           
                                                                
                                                               
@@ -280,52 +336,51 @@
         for ( var i = 0; i < oInfo.teams.length; i++ )
         {
             var playersCount = oInfo.teams[ i ].players.length;
-            var isSoloMode = oInfo.teams.length > 9 ? true : false;
-            
-            if ( isSoloMode )
-            {
-                                        
-                _UpdatePlayer( elList, oInfo.teams[ i ].players[ 0 ], oInfo.teams[ i ].position );
+                                         
+                                                                        
+                                
+                
+                                           
+                                                                                                     
+                                                                                 
+                    
+                                                                                           
+                    
+                
+                   
+                
+                       
+            var elTeam = _CreateTeamAvatarPanel( elList, oInfo.teams[ i ] );
 
-                if ( oLocalPlayerXuid === oInfo.teams[ i ].players[ 0 ].xuid )
-                {
-                    _HighlightLocalPLayer( elList, oInfo.teams[ i ].players[ 0 ].xuid );
-                }
+            if ( i > 0  )
+            {
+                elTeam.AddClass( 'survival-team--border' );
             }
-            else
+
+            if ( elTeam )
             {
-                           
-                var elTeam = _CreateTeamAvatarPanel( elList, oInfo.teams[ i ] );
+                var teamHasLocalPlayer = false;
 
-                if ( i > 0  )
+                for ( var j = 0; j < playersCount; j++ )
                 {
-                    elTeam.AddClass( 'survival-team--border' );
-                }
+                                                                                        
+                                                                                                                  
+                    var position = j === ( playersCount - 1 ) ? oInfo.teams[ i ].position : null;
+                    _UpdatePlayer( elTeam, oInfo.teams[ i ].players[ j ], position );
 
-                if ( elTeam )
-                {
-                    var teamHasLocalPlayer = false;
-
-                    for ( var j = 0; j < playersCount; j++ )
+                    if ( !teamHasLocalPlayer )
                     {
-                                                                                            
-                                                                                                                      
-                        var position = j === ( playersCount - 1 ) ? oInfo.teams[ i ].position : null;
-                        _UpdatePlayer( elTeam, oInfo.teams[ i ].players[ j ], position );
+                        teamHasLocalPlayer = oLocalPlayerXuid === oInfo.teams[ i ].players[ j ].xuid ? true : false;
+                    }
 
-                        if ( !teamHasLocalPlayer )
-                        {
-                            teamHasLocalPlayer = oLocalPlayerXuid === oInfo.teams[ i ].players[ j ].xuid ? true : false;
-                        }
-
-                                                                                    
-                        if ( teamHasLocalPlayer && ( position || position  === 0 ))
-                        {
-                            _HighlightLocalPLayer( elTeam, oInfo.teams[ i ].players[ j ].xuid );
-                        }
+                                                                                
+                    if ( teamHasLocalPlayer && ( position || position  === 0 ))
+                    {
+                        _HighlightLocalPLayer( elTeam, oInfo.teams[ i ].players[ j ].xuid );
                     }
                 }
             }
+               
         }
 
         _UpdateStats( oLocalPlayer, oInfo );
@@ -411,7 +466,20 @@
         if ( !elPlayerPanel )
         {
             elPlayerPanel = $.CreatePanel( 'Panel', elList, oPlayer.xuid );
-            elPlayerPanel.BLoadLayoutSnippet( 'survival-player' );
+			elPlayerPanel.BLoadLayoutSnippet( 'survival-player' );
+
+			              
+			var elImage = elPlayerPanel.FindChildInLayoutFile( "JsSurvivalSkillGroup" );
+			if ( oPlayer.skillgroup )
+			{
+				elImage.AddClass( 'has-rank-icon' );
+				elImage.SetImage( 'file://{images}/icons/skillgroups/dangerzone'+oPlayer.skillgroup+'.svg' );
+			}
+			else
+			{
+				elImage.AddClass( 'no-rank-icon' );
+			}
+
             _InitAvatar( elPlayerPanel.FindChildInLayoutFile( 'JsSurvivalAvatar' ), oPlayer.xuid );
             _AddDeadStateToPlayer( elPlayerPanel, oPlayer );
 

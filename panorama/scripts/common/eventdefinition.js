@@ -26,7 +26,7 @@
     $.DefineEvent( 'OpenPlayMenu', 0, 'no args', 'opens the play menu from anywhere. EXAMPLE from party menu settings button from client' );
     $.DefineEvent( 'OpenInventory', 0, 'no args', 'opens the inventory menu from anywhere.' );
     $.DefineEvent( 'OpenWatchMenu', 0, 'no args', 'opens the watch menu from anywhere.' );
-    $.DefineEvent( 'OpenSidebarPanel', 0, 'no args', 'open the sidebar from a abutton click from anywhere' );
+    $.DefineEvent( 'OpenSidebarPanel', 1, 'auto close', 'open the sidebar from a abutton click from anywhere pass setting if you wasnt it to autoclose' );
     $.DefineEvent( 'StartDecodeableAnim', 0, 'no args', 'tells the decode panel to play the animation' );
 
     $.DefineEvent( 'EndOfMatch_ShowNext', 0, '', "Notify the EndOfMatch controller to proceed to the next panel." );
@@ -44,19 +44,28 @@
     $.DefineEvent( 'Scoreboard_UnborrowMusicKit', 0, '', "Cancel Music Kit borrowing" );
 
     $.DefineEvent( 'Scoreboard_Casualties_OnMouseOver', 0, '', '' );
-    $.DefineEvent( 'Scoreboard_Casualties_OnMouseOut', 0, '', '' );
+	$.DefineEvent( 'Scoreboard_Casualties_OnMouseOut', 0, '', '' );
+	$.DefineEvent( 'Scoreboard_RoundLossBonusMoney_OnMouseOver_CT', 0, '', '' );
+	$.DefineEvent( 'Scoreboard_RoundLossBonusMoney_OnMouseOut_CT', 0, '', '' );
+	$.DefineEvent( 'Scoreboard_RoundLossBonusMoney_OnMouseOver_TERRORIST', 0, '', '' );
+	$.DefineEvent( 'Scoreboard_RoundLossBonusMoney_OnMouseOut_TERRORIST', 0, '', '' );
     $.DefineEvent( 'ShowAcceptPopup', 1, 'popup', 'Fired when accept match popup is shown.' );
     $.DefineEvent( 'CloseAcceptPopup', 0, '', 'Fired when accept match popup Closes.' );
 
     $.DefineEvent( 'ShowTournamentStore', 0, '', 'Show tournament store popup' );
+    $.DefineEvent( 'ShowTournamentStorePassPopup', 0, '', 'Popup the passes in the tournament store' );
     $.DefineEvent( 'AddItemToCart', 1, 'itemID', 'Add an itemid to tournament store shopping cart' );
     $.DefineEvent( 'RemoveItemFromCart', 1, 'itemID', 'Remove an item of this id from the tournament store shopping cart' );
 
     $.DefineEvent( 'CloseSubMenuContent', 0, 'no args', 'Closes up the submenu panel' );
     $.DefineEvent( 'NavigateToTab', 4, 'tab name, xml name, If its a tab, if you should add to stack', 'Closes up the submenu panel' );
                                                                                                                 
-    $.DefineEvent( 'InitializeTournamentsPage', 1, 'tournament ID', 'Loads the layout for a given tournament' );
-    $.DefineEvent( 'RefreshPickemPage', 1, 'tournament ID', 'refreshed pickem data' );
+    $.DefineEvent( 'InitializeTournamentsPage', 1, 'tournament ID', 'Loads the layout for a given tournament for active tournament tab' );
+    $.DefineEvent( 'ShowActiveTournamentPage', 1, 'tab to show id', 'Opens active tournament page in the watch panel' );
+	$.DefineEvent( 'RefreshPickemPage', 1, 'tournament ID', 'refreshed pickem data' );
+	
+	$.DefineEvent( 'Tournaments_RequestMatch', 1, 'matchId', 'Request match jso as string by match id' );
+	$.DefineEvent( 'Tournaments_RequestMatch_Response', 1, 'matchString', 'Return match jso as string' );
 
                                                                                                                             
                                                                                                                       

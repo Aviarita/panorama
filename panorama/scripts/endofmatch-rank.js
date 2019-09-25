@@ -251,9 +251,11 @@ var EOM_Rank = (function () {
 			           
 			_AnimSequenceNext( function()
 			{
-
 				$.DispatchEvent( 'PlaySoundEffect', 'UIPanorama.XP.BarFull', 'eom-rank' );
-				_m_cP.FindChildTraverse( "id-eom-rank__bar--shine" ).AddClass( "eom-rank__bar--shine--on" );
+				if ( _m_cP && _m_cP.IsValid() )
+				{
+					_m_cP.FindChildTraverse( "id-eom-rank__bar--shine" ).AddClass( "eom-rank__bar--shine--on" );
+				}
 
 			}, 1 );
 
@@ -263,7 +265,7 @@ var EOM_Rank = (function () {
 				$.DispatchEvent( 'PlaySoundEffect', 'UIPanorama.XP.NewRank', 'eom-rank' );
 
 				                             
-				if ( elCurrentListerItem )
+				if ( elCurrentListerItem && elCurrentListerItem.IsValid() )
 				{
 					elCurrentListerItem.AddClass( "eom-rank__lister__item--old" );
 				}

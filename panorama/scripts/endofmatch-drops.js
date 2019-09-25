@@ -97,7 +97,15 @@ var EOM_Drops = (function () {
 					soundEvent = "ItemDropAncient";
 				}
 
-				$.Schedule( 0.5, function() { elDropContainer.AddClass( 'blendmode' ); } );
+				if ( elDropContainer.IsValid() )
+				{
+					$.Schedule( 0.5, function(){
+						if ( elDropContainer && elDropContainer.IsValid())
+						{
+							elDropContainer.AddClass( 'blendmode' );
+						}
+					} );
+				}
 
 				var dropWidth = 220;
 				_m_cP.style.width = ( dropWidth * ( index + 1 ) ) + 'px';

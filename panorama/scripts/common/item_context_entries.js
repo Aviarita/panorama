@@ -24,11 +24,6 @@ var ItemContextEntires = ( function (){
 		} );
 	};
 
-	var _CanEquipItem = function( itemID )
-	{
-		return ItemInfo.GetSlotSubPosition( itemID ) && !ItemInfo.IsEquippalbleButNotAWeapon( itemID ) && LoadoutAPI.IsLoadoutAllowed();
-	}
-
 	                                                                                                    
                                              
                                                            
@@ -58,9 +53,10 @@ var ItemContextEntires = ( function (){
 			},
 			AvailableForItem: function ( id ) {
 				                                                                 
-				return ( ItemInfo.GetSlotSubPosition( id ) ||
+				return ( ( ItemInfo.GetSlotSubPosition( id ) ||
 					ItemInfo.ItemMatchDefName( id, 'sticker' ) ||
-					ItemInfo.ItemMatchDefName( id, 'spray' )
+					ItemInfo.ItemMatchDefName( id, 'spray' ) ) &&
+					!ItemInfo.ItemDefinitionNameSubstrMatch( id, 'tournament_journal_' )                                                      
 				);
 			},
 			OnSelected:  function ( id ) {
@@ -69,10 +65,48 @@ var ItemContextEntires = ( function (){
 			}
 		},
 		{
+			name: 'view_tournament_journal',
+			populateFilter: ['inspect', 'loadout'],
+			style: function (id){
+				return false;
+			},
+			AvailableForItem: function ( id ) {
+				return ItemInfo.ItemDefinitionNameSubstrMatch( id, 'tournament_journal_' );
+			},
+			OnSelected:  function ( id ) {
+				UiToolkitAPI.ShowCustomLayoutPopupParameters(
+					'',
+					'file://{resources}/layout/popups/popup_tournament_journal.xml',
+					'journalid=' + id
+				);
+
+				$.DispatchEvent( 'ContextMenuEvent', '' );
+			}
+		},
+		{
+			name: 'openloadout',
+			AvailableForItem: function ( id ) {
+				var slotsub = ItemInfo.GetSlotSubPosition(id);
+				return ( slotsub ) &&
+					( slotsub !== 'c4' ) &&
+					!slotsub.startsWith( "equipment" ) &&
+					ItemInfo.IsEquippalbleButNotAWeapon( id ) &&
+					!slotsub.startsWith( "grenade" );
+			},
+			OnSelected:  function ( id ) {
+				                                         
+				var teamNum = ( ItemInfo.GetTeam( id ).search( 'Team_T' ) === -1 ) ? 3 : 2;
+				$.DispatchEvent( 'ContextMenuEvent', '' );
+				$.DispatchEvent( "ShowLoadoutForItem", ItemInfo.GetSlot( id ) , ItemInfo.GetSlotSubPosition( id ), teamNum );
+			}
+		},
+		{
 			name: 'equip_both_teams',
 			populateFilter: ['inspect', 'loadout'],
 			AvailableForItem: function ( id ) {
-				if( ItemInfo.IsItemAnyTeam(id) && (!ItemInfo.IsEquippedForCT(id) && !ItemInfo.IsEquippedForT(id)))
+				if ( ItemInfo.IsItemAnyTeam( id ) &&
+					( !ItemInfo.IsEquippedForCT( id ) && !ItemInfo.IsEquippedForT( id ) &&
+						!ItemInfo.IsShuffleEnabled( id, 't' ) && !ItemInfo.IsShuffleEnabled( id, 'ct' ) ) )
 				{
 					return _CanEquipItem( id );
 				}
@@ -80,7 +114,7 @@ var ItemContextEntires = ( function (){
 			OnSelected: function( id )
 			{				
 				$.DispatchEvent( 'ContextMenuEvent', '' );
-				EquipItem( id, [ 'ct','t' ] );
+				EquipItem( id, [ 'ct', 't' ] );
 			}
 		},
 		{
@@ -91,10 +125,13 @@ var ItemContextEntires = ( function (){
 			},
 			populateFilter: ['inspect', 'loadout'],
 			style: function (id){
-				return ItemInfo.IsItemAnyTeam(id) ? '' : 'BottomSeparator';
+				return false;
 			},
 			AvailableForItem: function ( id ) {
-				if((ItemInfo.IsItemCt(id) || ItemInfo.IsItemAnyTeam(id)) && !ItemInfo.IsEquippedForCT(id))
+				if ( _DoesItemTeamMatchTeamRequired( 'ct', id ) &&
+					_ItemIsNotEquippedAndNotInShuffle( 'ct', id ) ||
+					_IsInShuffleButNotEquippedWeaponTypeForSlot( 'ct', id ) &&
+					_DoesItemTeamMatchTeamRequired( 'ct', id ) )
 				{
 					return _CanEquipItem( id );
 				}
@@ -116,11 +153,13 @@ var ItemContextEntires = ( function (){
 				return _GetItemToReplaceName(id, 'ct');
 			},
 			style: function (id){
-				return (ItemInfo.IsItemAnyTeam(id) || ItemInfo.IsItemT(id)) ? 'BottomSeparator' : '';
+				return false;
 			},
 			AvailableForItem: function ( id ) {
-				
-				if(( ItemInfo.IsItemT(id) || ItemInfo.IsItemAnyTeam(id)) && !ItemInfo.IsEquippedForT(id))
+				if ( _DoesItemTeamMatchTeamRequired( 't', id ) &&
+					_ItemIsNotEquippedAndNotInShuffle( 't', id ) ||
+					_IsInShuffleButNotEquippedWeaponTypeForSlot( 't', id ) &&
+					_DoesItemTeamMatchTeamRequired( 't', id ) )
 				{
 					return _CanEquipItem( id );
 				}
@@ -131,26 +170,155 @@ var ItemContextEntires = ( function (){
 				EquipItem( id, [ 't' ] );
 			}
 		},
-		{
+		{	
 			                            
-			name: 'equip_spray',
-			CustomName: function (id) {
-				return _GetItemToReplaceName(id, 'noteam');
-			},
+			name: 'add_to_shuffle_t',
 			populateFilter: ['inspect', 'loadout'],
-			ToolTip: function (id) {
-				return _GetItemToReplaceName( id, 'noteam');
-			},
 			style: function (id){
-				return (ItemInfo.IsItemAnyTeam(id) || ItemInfo.IsItemT(id)) ? 'BottomSeparator' : '';
+				return false;
 			},
 			AvailableForItem: function ( id ) {
-				return ItemInfo.ItemMatchDefName(id, 'spraypaint') && !ItemInfo.IsEquippedForNoTeam(id);
+				
+				if (( ItemInfo.IsItemT( id ) || ItemInfo.IsItemAnyTeam( id ) ) &&
+					ItemInfo.IsShuffleEnabled( id, 't' ) && !ItemInfo.IsItemInShuffleForTeam( id, 't' ) && !InventoryAPI.IsItemDefault( id ) )
+				{
+					return _CanEquipItem( id );
+				}
+			},
+			OnSelected: function( id )
+			{
+				$.DispatchEvent( 'ContextMenuEvent', '' );
+				ItemInfo.AddItemToShuffle( id, 't' );
+			}
+		},
+		{	
+			                               
+			name: 'remove_from_shuffle_t',
+			populateFilter: ['inspect', 'loadout'],
+			style: function (id){
+				return false;
+			},
+			AvailableForItem: function ( id ) {
+				
+				if ( ( ItemInfo.IsItemT( id ) || ItemInfo.IsItemAnyTeam( id ) ) &&
+					ItemInfo.IsShuffleEnabled( id, 't' ) && ItemInfo.IsItemInShuffleForTeam( id, 't' ) )
+				{
+					return _CanEquipItem( id );
+				}
+			},
+			OnSelected: function( id )
+			{
+				$.DispatchEvent( 'ContextMenuEvent', '' );
+				ItemInfo.RemoveItemFromShuffle( id, 't' );
+				ItemInfo.EnsureShuffleItemEquipped( id, 't' );
+			}
+		},
+		{	
+			                             
+			name: 'add_to_shuffle_ct',
+			populateFilter: ['inspect', 'loadout'],
+			style: function (id){
+				return false;
+			},
+			AvailableForItem: function ( id ) {
+				if ( ( ItemInfo.IsItemCt( id ) || ItemInfo.IsItemAnyTeam( id ) ) &&
+					ItemInfo.IsShuffleEnabled( id, 'ct' ) && !ItemInfo.IsItemInShuffleForTeam( id, 'ct' ) && !InventoryAPI.IsItemDefault( id ) )
+				{
+					return _CanEquipItem( id );
+				}
+			},
+			OnSelected: function( id )
+			{
+				$.DispatchEvent( 'ContextMenuEvent', '' );
+				ItemInfo.AddItemToShuffle( id, 'ct' );
+			}
+		},
+		{	
+			                                
+			name: 'remove_from_shuffle_ct',
+			populateFilter: ['inspect', 'loadout'],
+			style: function (id){
+				return false;
+			},
+			AvailableForItem: function ( id ) {
+				
+				if ( ( ItemInfo.IsItemCt( id ) || ItemInfo.IsItemAnyTeam( id ) ) &&
+					ItemInfo.IsShuffleEnabled( id, 'ct' ) && ItemInfo.IsItemInShuffleForTeam( id, 'ct' ) )
+				{
+					return _CanEquipItem( id );
+				}
+			},
+			OnSelected: function( id )
+			{
+				$.DispatchEvent( 'ContextMenuEvent', '' );
+				ItemInfo.RemoveItemFromShuffle( id, 'ct' );
+				ItemInfo.EnsureShuffleItemEquipped( id, 'ct' );
+			}
+		},
+		{
+			name: 'flair',
+			populateFilter: ['inspect', 'loadout'],
+			AvailableForItem: function ( id ) {
+				return ItemInfo.GetSlotSubPosition(id) === 'flair0' && (
+					!ItemInfo.IsEquippedForNoTeam(id) || ( InventoryAPI.GetRawDefinitionKey(id, 'item_sub_position2') !== '' )
+				);
 			},
 			OnSelected: function( id )
 			{
 				$.DispatchEvent( 'ContextMenuEvent', '' );
 				EquipItem( id, [ 'noteam' ] );
+			}
+		},
+		                                                           
+		    
+			                        
+		   	                              
+		   	                                       
+		   	                                   
+		   		                                                                         
+		   	  
+		   	                          
+		   	 
+		   		                                          
+				
+		   		                                
+		   			                                                   
+		   			                                                   
+		   			   
+		   			              
+		   			             
+		   		  
+		   	 
+		     
+		{
+			                            
+			name: 'equip_spray',
+			populateFilter: ['inspect', 'loadout'],
+			AvailableForItem: function ( id ) {
+				return ( ItemInfo.ItemMatchDefName( id, 'spraypaint' ) && !ItemInfo.IsEquippedForNoTeam( id ) );
+			},
+			OnSelected: function( id )
+			{
+				$.DispatchEvent( 'ContextMenuEvent', '' );
+				EquipItem( id, [ 'noteam' ], 'spray0' );
+			}
+		},
+		{
+			                            
+			name: 'equip_tournament_spray',
+			populateFilter: ['inspect', 'loadout'],
+			AvailableForItem: function ( id ) {
+				return ( ItemInfo.ItemDefinitionNameSubstrMatch(id, 'tournament_journal_') && ( InventoryAPI.GetRawDefinitionKey(id, 'item_sub_position2') === 'spray0' ) );
+			},
+			OnSelected: function( id )
+			{
+				$.DispatchEvent( 'ContextMenuEvent', '' );
+	
+				UiToolkitAPI.ShowCustomLayoutPopupParameters(
+					'',
+					'file://{resources}/layout/popups/popup_tournament_select_spray.xml',
+					'journalid=' + id
+				);
 			}
 		},
 		{
@@ -161,10 +329,11 @@ var ItemContextEntires = ( function (){
 			},
 			populateFilter: ['inspect', 'loadout'],
 			style: function (id){
-				return (ItemInfo.IsItemAnyTeam(id) || ItemInfo.IsItemT(id)) ? 'BottomSeparator' : '';
+				                                                                                       
+				return false;
 			},
 			AvailableForItem: function ( id ) {
-				return ItemInfo.GetSlotSubPosition(id) === 'musickit' && !ItemInfo.IsEquippedForNoTeam(id);
+				return ItemInfo.GetSlotSubPosition(id) === 'musickit' && !ItemInfo.IsEquippedForNoTeam(id) && !ItemInfo.IsShuffleEnabled( id, 'noteam' );
 			},
 			OnSelected: function( id )
 			{
@@ -182,21 +351,78 @@ var ItemContextEntires = ( function (){
 			}
 		},
 		{
+			                     
+			name: 'add_musickit_to_shuffle',
+			populateFilter: ['inspect', 'loadout'],
+			style: function (id){
+				return '';
+			},
+			AvailableForItem: function ( id ) {
+				return ItemInfo.GetSlotSubPosition(id) === 'musickit' && ItemInfo.IsShuffleEnabled( id, 'noteam' ) && !ItemInfo.IsItemInShuffleForTeam( id, 'noteam' ) && !InventoryAPI.IsItemDefault( id );
+			},
+			OnSelected: function( id )
+			{
+				$.DispatchEvent( 'ContextMenuEvent', '' );
+				ItemInfo.AddItemToShuffle( id, 'noteam' );
+			}
+		},
+		{
+			                       
+			name: 'remove_musickit_from_shuffle',
+			populateFilter: ['inspect', 'loadout'],
+			style: function (id){
+				return '';
+			},
+			AvailableForItem: function ( id ) {
+				return ItemInfo.GetSlotSubPosition(id) === 'musickit' && ItemInfo.IsShuffleEnabled( id, 'noteam' ) && ItemInfo.IsItemInShuffleForTeam( id, 'noteam' );
+			},
+			OnSelected: function( id )
+			{
+				$.DispatchEvent( 'ContextMenuEvent', '' );
+				ItemInfo.RemoveItemFromShuffle( id, 'noteam' );
+			}
+		},
+		{
 			name: 'open_watch_panel_pickem',
 			AvailableForItem: function ( id ) {
 				if ( GameStateAPI.GetMapBSPName() )	                                           
 					return false;
-				var tournament = 'tournament:' + NewsAPI.GetActiveTournamentEventID();
-				return PredictionsAPI.GetMyPredictionItemIDEventSectionIndex( tournament, id ) != undefined;
+				return ( ItemInfo.ItemDefinitionNameSubstrMatch(id, 'tournament_journal_') && ( InventoryAPI.GetRawDefinitionKey(id, 'item_sub_position2') === 'spray0' ) );
 			},
 			OnSelected:  function ( id ) {
 				$.DispatchEvent( 'OpenWatchMenu' );
+                $.DispatchEvent( 'ShowActiveTournamentPage', '' );
+				$.DispatchEvent( 'ContextMenuEvent', '' );
+			}
+		},
+		{
+			name: 'getprestige',
+			AvailableForItem: function ( id ) {
+				return ( ItemInfo.ItemDefinitionNameSubstrMatch(id, 'xpgrant') &&
+					( FriendsListAPI.GetFriendLevel( MyPersonaAPI.GetXuid() ) >= InventoryAPI.GetMaxLevel() ) );
+			},
+			OnSelected: function( id )
+			{
+				UiToolkitAPI.ShowCustomLayoutPopupParameters(
+					'',
+					'file://{resources}/layout/popups/popup_inventory_inspect.xml',
+					'itemid=' + '0' +                                                                                          
+					'&' + 'asyncworkitemwarning=no' +
+					'&' + 'asyncworktype=prestigecheck'
+				);
+				
 				$.DispatchEvent( 'ContextMenuEvent', '' );
 			}
 		},
 		{
 			name: 'useitem',
 			AvailableForItem: function ( id ) {
+				if ( ItemInfo.ItemDefinitionNameSubstrMatch(id, 'tournament_pass_') ) return true;
+				if ( ItemInfo.ItemDefinitionNameSubstrMatch(id, 'xpgrant') )
+				{	                                                                
+					return ( FriendsListAPI.GetFriendLevel( MyPersonaAPI.GetXuid() ) < InventoryAPI.GetMaxLevel() );
+				}
+
 				if ( !InventoryAPI.IsTool( id ) ) return false;
 				var season = InventoryAPI.GetItemAttributeValue( id, 'season access' );
 				if ( season != undefined ) return true;                                    
@@ -204,14 +430,42 @@ var ItemContextEntires = ( function (){
 			},
 			OnSelected: function( id )
 			{
-				UiToolkitAPI.ShowCustomLayoutPopupParameters(
-					'',
-					'file://{resources}/layout/popups/popup_inventory_inspect.xml',
-					'itemid=' + id +
-					'&' + 'asyncworktype=useitem'
-				);
+				if ( ItemInfo.ItemDefinitionNameSubstrMatch(id, 'tournament_pass_') ) {
+					UiToolkitAPI.ShowCustomLayoutPopupParameters(
+						'',
+						'file://{resources}/layout/popups/popup_capability_decodable.xml',
+						'key-and-case=,' + id +
+						'&' + 'asyncworktype=decodeable'
+					);
+				} else {
+					UiToolkitAPI.ShowCustomLayoutPopupParameters(
+						'',
+						'file://{resources}/layout/popups/popup_inventory_inspect.xml',
+						'itemid=' + id +
+						'&' + 'asyncworktype=useitem'
+					);
+				}
+				
+				$.DispatchEvent( 'ContextMenuEvent', '' );
 			}
 		},
+		{
+			name: 'edit_shuffle_settings',
+			AvailableForItem: function ( id ) {
+				return ItemInfo.IsShuffleAllowed( id ) && !InventoryAPI.IsItemDefault( id );
+			},
+			style: function( id )
+			{
+				return 'BottomSeparator';
+			},
+			OnSelected:  function ( id ) {
+				                                         
+				var teamNum = ( ItemInfo.GetTeam( id ).search( 'Team_T' ) === -1 ) ? 3 : 2;
+				$.DispatchEvent( 'ContextMenuEvent', '' );
+				$.DispatchEvent( "ShowLoadoutForItem", ItemInfo.GetSlot( id ) , ItemInfo.GetSlotSubPosition( id ), teamNum );
+			}
+		},
+
 		{
 			name: 'usespray',
 			populateFilter: ['inspect'],
@@ -352,21 +606,6 @@ var ItemContextEntires = ( function (){
 			}
 		},
 		{
-			name: 'flair',
-			populateFilter: ['inspect', 'loadout'],
-			style: function (id){
-				return 'BottomSeparator';
-			},
-			AvailableForItem: function ( id ) {
-				return ItemInfo.GetSlotSubPosition(id) === 'flair0' && !ItemInfo.IsEquippedForNoTeam(id);
-			},
-			OnSelected: function( id )
-			{
-				$.DispatchEvent( 'ContextMenuEvent', '' );
-				EquipItem( id, [ 'noteam' ] );
-			}
-		},
-		{
 			name: 'journal',
 			AvailableForItem: function ( id ) {
 				return false;                                
@@ -376,19 +615,6 @@ var ItemContextEntires = ( function (){
 			},
 			OnSelected:  function ( id ) {
 				$.DispatchEvent( 'ContextMenuEvent', '' );
-			}
-		},
-		{
-			name: 'openloadout',
-			AvailableForItem: function ( id ) {
-				var slotsub = ItemInfo.GetSlotSubPosition(id);
-				return ( slotsub ) && ( slotsub !== 'c4' ) && !slotsub.startsWith( "equipment" ) && !slotsub.startsWith( "grenade" );
-			},
-			OnSelected:  function ( id ) {
-				                                         
-				var teamNum = ( ItemInfo.GetTeam( id ).search( 'Team_T' ) === -1 ) ? 3 : 2;
-				$.DispatchEvent( 'ContextMenuEvent', '' );
-				$.DispatchEvent( "ShowLoadoutForItem", ItemInfo.GetSlot( id ) , ItemInfo.GetSlotSubPosition( id ), teamNum );
 			}
 		},
 		{
@@ -523,15 +749,49 @@ var ItemContextEntires = ( function (){
 		return '<font color="' + rarityColor + '">' + ItemInfo.GetName( id ) + '</font>';
 	};
 
-	var EquipItem = function( id, team )
+	var EquipItem = function( id, team, slot )
 	{
-		var slot = ItemInfo.GetSlotSubPosition( id );
+		if ( slot === null || slot === undefined || slot === '' )
+			slot = ItemInfo.GetSlotSubPosition( id );                                                   
+		
 		team.forEach( element => LoadoutAPI.EquipItemInSlot( element, id, slot ) );
 	};
 
 	var _DoesNotHaveChosenActionItems = function( id, capability )
 	{
 		return ( ItemInfo.GetChosenActionItemsCount( id, capability ) === 0 && !ItemInfo.IsTool( id ) );
+	};
+
+	var _DoesItemTeamMatchTeamRequired = function ( team, id )
+	{
+		if ( team === 't' )
+		{
+			return ItemInfo.IsItemT( id ) || ItemInfo.IsItemAnyTeam( id );
+		}
+
+		if ( team === 'ct' )
+		{
+			return ItemInfo.IsItemCt( id ) || ItemInfo.IsItemAnyTeam( id );
+		}
+	};
+	
+	var _ItemIsNotEquippedAndNotInShuffle = function( team, id )
+	{
+		return !InventoryAPI.IsEquipped( id, team ) && !ItemInfo.IsShuffleEnabled( id, team );
+	};
+
+	var _IsInShuffleButNotEquippedWeaponTypeForSlot = function( team, id )
+	{
+		var currentlyEquippedId = LoadoutAPI.GetItemID( team, ItemInfo.GetSlotSubPosition( id ) );
+		var isSharedSlot = InventoryAPI.GetRawDefinitionKey( id , "item_shares_equip_slot" );
+		var IsNotEquippedInSLot = InventoryAPI.GetItemDefinitionName( currentlyEquippedId ) === InventoryAPI.GetItemDefinitionName( id );
+		
+		return ItemInfo.IsShuffleEnabled( id, team ) && !IsNotEquippedInSLot && isSharedSlot === '1';
+	};
+
+	var _CanEquipItem = function( itemID )
+	{
+		return ItemInfo.GetSlotSubPosition( itemID ) && !ItemInfo.IsEquippalbleButNotAWeapon( itemID ) && LoadoutAPI.IsLoadoutAllowed();
 	};
 
 	return {

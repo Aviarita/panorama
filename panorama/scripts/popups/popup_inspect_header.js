@@ -16,13 +16,21 @@ var InspectHeader = ( function()
 	
 	var _SetName = function( elPanel, ItemId )
 	{
+		                                                                      
+		if ( ItemInfo.ItemDefinitionNameSubstrMatch( ItemId, 'tournament_journal_' ) )
+			ItemId = ItemInfo.GetFauxReplacementItemID( ItemId, 'graffiti' );
+
 		elPanel.FindChildInLayoutFile( 'InspectName' ).text = ItemInfo.GetName( ItemId );
 	};
 	
 	var _SetRarity = function( elPanel, itemId )
 	{
 		var rarityColor = ItemInfo.GetRarityColor( itemId );
-		elPanel.FindChildInLayoutFile( 'InspectBar' ).style.washColor = rarityColor;
+
+		if ( rarityColor )
+		{
+			elPanel.FindChildInLayoutFile( 'InspectBar' ).style.washColor = rarityColor;
+		}
 	};
 	
 	var _SetCollectionInfo = function( elPanel, itemId )

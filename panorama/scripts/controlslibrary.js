@@ -1,4 +1,4 @@
-"use strict";
+﻿"use strict";
 
                                                                                                     
           
@@ -275,6 +275,10 @@ function UpdateDialogVariables()
     $.Schedule( 1.0, UpdateDialogVariables );
 }
 
+function InitCaseTest()
+{
+	$("#CaseTest").SetDialogVariable("casetest", "iİıI");
+}
 
                                                                                                     
              
@@ -285,7 +289,7 @@ function OnImageFailLoad( panelName, image )
     var varStr = $( "#ChildDialogVarTextEntry" ).text;
 
                                                                                                               
-                                                                                        
+    $( "#ControlsLibPanelImageFallback" ).SetImage( "file://{images}/icons/knife.vtf" );
 }
 
 function InitPanels()
@@ -352,7 +356,7 @@ function OnRssFeedReceived( feed )
 
                              
     feed[ 'items' ].forEach( function( item ) {
-        var itemPanel = $.CreatePanel( 'Panel', RSSFeedPanel, '', { acceptsinput: true, onactivate: 'SteamOverlayAPI.OpenURL( "' + item.link + '" );' } );
+		var itemPanel = $.CreatePanel( 'Panel', RSSFeedPanel, '', { acceptsinput: true } );
         itemPanel.AddClass( 'RSSFeed__Item' );
 
         $.CreatePanel( 'Label', itemPanel, '', { text: item.title, html: true, class: 'RSSFeed__ItemTitle' } );
@@ -361,7 +365,9 @@ function OnRssFeedReceived( feed )
             $.CreatePanel( 'Image', itemPanel, '', { src: item.imageUrl, class: 'RSSFeed__ItemImage', scaling: 'stretch-to-fit-preserve-aspect' } );
         }
         $.CreatePanel( 'Label', itemPanel, '', { text: item.description, html: true, class: 'RSSFeed__ItemDesc' } );
-        $.CreatePanel( 'Label', itemPanel, '', { text: item.date, html: true, class: 'RSSFeed__ItemDate' } );
+		$.CreatePanel( 'Label', itemPanel, '', { text: item.date, html: true, class: 'RSSFeed__ItemDate' } );
+		
+		itemPanel.SetPanelEvent( "onactivate", SteamOverlayAPI.OpenURL.bind( SteamOverlayAPI, item.link ) );
     });
 }
 

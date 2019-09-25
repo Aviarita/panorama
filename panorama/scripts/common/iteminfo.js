@@ -32,6 +32,55 @@ var ItemInfo = ( function() {
 	    }
 	};
 
+	var _AddItemToShuffle = function( id, team )
+	{
+		return LoadoutAPI.AddItemToShuffle( id, team );
+	};
+
+	var _RemoveItemFromShuffle = function( id, team )
+	{
+		return LoadoutAPI.RemoveItemFromShuffle( id, team );
+	};
+
+	var _IsItemInShuffleForTeam = function( id, team )
+	{
+		return LoadoutAPI.IsItemInShuffleForTeam( id, team );
+	};
+
+	var _ClearShuffle = function( id, team )
+	{
+		return LoadoutAPI.ClearShuffle ( id, team );
+	};
+
+	var _SetShuffleEnabled = function ( id, team, enable )
+	{
+		return LoadoutAPI.SetShuffleEnabled( id, team, enable );
+	};
+
+	var _IsShuffleEnabled = function ( id, team )
+	{
+		return LoadoutAPI.IsShuffleEnabled( id, team );
+	};
+
+	var _IsShuffleAllowed = function ( id )
+	{
+		return LoadoutAPI.IsShuffleAllowed( id );
+	};
+
+	var _CountItemsInInventoryForShuffleSlot = function ( id, team )
+	{
+		return LoadoutAPI.CountItemsInInventoryForShuffleSlot( id, team );
+	};
+
+	var _EnsureShuffleItemEquipped = function ( itemID, team )
+	{
+		var equippedItemID = ItemInfo.GetItemIdForItemEquippedInLoadoutSlot( itemID, team );
+		if ( !LoadoutAPI.IsItemInShuffleForTeam( equippedItemID, team ) )
+		{
+			LoadoutAPI.ShuffleEquipmentInSlot( equippedItemID, team );
+		}
+	};
+
 	var _GetName = function( id )
 	{
 		return InventoryAPI.GetItemName( id );
@@ -50,6 +99,11 @@ var ItemInfo = ( function() {
 	var _IsEquippedForNoTeam = function( id )
 	{
 		return InventoryAPI.IsEquipped( id, "noteam" );
+	};
+
+	var _IsEquipped = function( id, team )
+	{
+		return InventoryAPI.IsEquipped( id, team );
 	};
 
 	var _GetSlot = function( id )
@@ -174,14 +228,20 @@ var ItemInfo = ( function() {
 		return LoadoutAPI.GetItemGamePrice( team, _GetSlotSubPosition( id ).toString() );
 	};
 
-	var _GetStoreOriginalPrice = function( id, count )
+	var _GetStoreOriginalPrice = function( id, count, rules )
 	{
-		return StoreAPI.GetStoreItemOriginalPrice( id, count );                                                 
+		                                                                      
+		                                                                            
+		                                                                                                   
+		return StoreAPI.GetStoreItemOriginalPrice( id, count, rules ? rules : '' );
 	};
 
-	var _GetStoreSalePrice = function( id, count )
+	var _GetStoreSalePrice = function( id, count, rules )
 	{
-		return StoreAPI.GetStoreItemSalePrice( id, count );                                                 
+		                                                                      
+		                                                                            
+		                                                                                                   
+		return StoreAPI.GetStoreItemSalePrice( id, count, rules ? rules : '' );
 	};
 
 	var _GetStoreSalePercentReduction = function( id, count )
@@ -234,6 +294,37 @@ var ItemInfo = ( function() {
 		return InventoryAPI.DoesItemMatchDefinitionByName( id, defName );
 	};
 
+	var _ItemDefinitionNameSubstrMatch = function( id, defSubstr )
+	{
+		var itemDefName = InventoryAPI.GetItemDefinitionName( id );
+		return ( itemDefName && ( itemDefName.indexOf( defSubstr ) != -1 ) );
+	};
+
+	var _GetFauxReplacementItemID = function( id, purpose )
+	{
+		                                                                                 
+		                                                                                
+		                                
+		if ( purpose === 'graffiti' )
+		{
+			if ( _ItemDefinitionNameSubstrMatch( id, 'tournament_journal_' ) )
+			{
+				return _GetFauxItemIdForGraffiti( parseInt( InventoryAPI.GetItemAttributeValue( id, 'sticker slot 0 id' ) ));
+			}
+		}
+		return id;
+	};
+
+	var _GetFauxItemIdForGraffiti = function( stickestickerid_graffiti )
+	{
+		                                                                                 
+		                                                                                
+		                                
+		
+		return InventoryAPI.GetFauxItemIDFromDefAndPaintIndex(                
+			1349, stickestickerid_graffiti );
+	};
+
 	var _GetItemIdForItemEquippedInLoadoutSlot = function( id, team )
 	{
 		return LoadoutAPI.GetItemID( team, _GetSlotSubPosition( id ) );
@@ -279,10 +370,11 @@ var ItemInfo = ( function() {
 		var isSticker = _ItemMatchDefName( id, 'sticker' );
 		var isSpray = itemSchemaDef.name === 'spraypaint';
 		var isSprayPaint = itemSchemaDef.name === 'spray';
+		var isFanTokenOrShieldItem = itemSchemaDef.name && itemSchemaDef.name.indexOf( 'tournament_journal_' ) != -1;
 		
 		                                                                    
 		                                                       
-		if ( isSpray || isSprayPaint )
+		if ( isSpray || isSprayPaint || isFanTokenOrShieldItem )
 			return 'vmt://spraypreview_' + id;
 		else if ( isSticker )
 			return 'vmt://stickerpreview_' + id;
@@ -292,6 +384,12 @@ var ItemInfo = ( function() {
 
 	var _GetModelPathFromJSONOrAPI = function( id )
 	{
+		                                
+		if ( id === '' || id === undefined || id === null )
+		{
+			return '';
+		}
+		
 		var pedistalModel = '';
 		var schemaString = InventoryAPI.BuildItemSchemaDefJSON( id );
 		var itemSchemaDef = JSON.parse( schemaString );
@@ -338,11 +436,23 @@ var ItemInfo = ( function() {
 	return {
 		GetRarityColor					: _GetRarityColor,
 		GetName							: _GetName,
+		GetFauxReplacementItemID		: _GetFauxReplacementItemID,
+		GetFauxItemIdForGraffiti		: _GetFauxItemIdForGraffiti,
         GetFormattedName                : _GetFormattedName,                                 
+		IsEquipped						: _IsEquipped,
 		IsEquippedForCT					: _IsEquippedForCT,
 		IsEquippedForT					: _IsEquippedForT,
 		IsEquippedForNoTeam				: _IsEquippedForNoTeam,
 		IsEquippalbleButNotAWeapon		: _IsEquippalbleButNotAWeapon,
+		AddItemToShuffle				: _AddItemToShuffle,
+		RemoveItemFromShuffle			: _RemoveItemFromShuffle,
+		IsItemInShuffleForTeam			: _IsItemInShuffleForTeam,
+		ClearShuffle					: _ClearShuffle,
+		SetShuffleEnabled				: _SetShuffleEnabled, 
+		IsShuffleEnabled				: _IsShuffleEnabled, 
+		IsShuffleAllowed				: _IsShuffleAllowed, 
+		CountItemsInInventoryForShuffleSlot	: _CountItemsInInventoryForShuffleSlot, 
+		EnsureShuffleItemEquipped		: _EnsureShuffleItemEquipped, 
 		GetSlot							: _GetSlot,
 		GetTeam							: _GetTeam,
 		GetSlotSubPosition				: _GetSlotSubPosition,
@@ -371,6 +481,7 @@ var ItemInfo = ( function() {
 		ItemsNeededToTradeUp			: _ItemsNeededToTradeUp,
 		             						                                      
 		ItemMatchDefName				: _ItemMatchDefName,
+		ItemDefinitionNameSubstrMatch	: _ItemDefinitionNameSubstrMatch,
 		GetItemDefinitionName			: _GetItemDefinitionName,
 		GetGifter						: _GetGifter,
 		GetSet							: _GetSet,
