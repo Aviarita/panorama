@@ -1370,6 +1370,7 @@ var Scoreboard = ( function()
 							elAvatarImage.AddClass( "sb-row__cell--avatar--" + team );
 
 							elAvatarImage.m_team = team;
+							elAvatarImage.SetDefaultImage( "file://{images}/icons/scoreboard/avatar-"+team+".png" );
 						}
 					}
 					                                                                         
@@ -1441,7 +1442,7 @@ var Scoreboard = ( function()
 				
 					var newStatValue = GameStateAPI.GetPlayerCompetitiveRanking( oPlayer.m_xuid );
 
-					if ( ( newStatValue != -1 ) && ( oPlayer.m_oStats[ stat ] !== newStatValue ) )
+					if ( oPlayer.m_oStats[ stat ] !== newStatValue )
 					{
 
 						oPlayer.m_oStats[ stat ] = newStatValue;
@@ -1487,7 +1488,7 @@ var Scoreboard = ( function()
 				{
 					var newStatValue = GameStateAPI.GetPlayerXpLevel( oPlayer.m_xuid );
 
-					if ( ( newStatValue != -1 ) && ( oPlayer.m_oStats[ stat ] !== newStatValue ) )
+					if ( oPlayer.m_oStats[ stat ] !== newStatValue )
 					{
 						oPlayer.m_oStats[ stat ] = newStatValue;
 
@@ -2016,7 +2017,13 @@ var Scoreboard = ( function()
 			}
 			else
 			{
-				elMapLabel.text =  $.Localize( "{s:gamemode_name} | {s:map_name}", _m_cP );
+				var strLocalizeScoreboardTitle = "{s:gamemode_name} | {s:map_name}";
+				if ( ( GameStateAPI.GetGameModeInternalName( true ) === 'competitive' ) &&
+					( GameTypesAPI.GetMapGroupAttribute( 'mg_'+GameStateAPI.GetMapBSPName(), 'competitivemod' ) === 'unranked' ) )
+				{
+					strLocalizeScoreboardTitle = "{s:gamemode_name} | " + $.Localize( '#SFUI_RankType_Modifier_Unranked', _m_cP ) + " | {s:map_name}";
+				}
+				elMapLabel.text =  $.Localize( strLocalizeScoreboardTitle, _m_cP );
 			}
 		}
 
@@ -2354,6 +2361,41 @@ var Scoreboard = ( function()
 		UiToolkitAPI.HideCustomLayoutTooltip( 'id-tooltip-sb-casualties' );
 	}
 
+	function _RoundLossBonusMoneyForTeam( teamname )
+	{
+		var nLossAmount = GameStateAPI.GetTeamNextRoundLossBonus( teamname );
+		var nMaxLoss = parseInt( GameInterfaceAPI.GetSettingString( "mp_consecutive_loss_max" ) );
+		if ( nLossAmount > nMaxLoss ) { nLossAmount = nMaxLoss; }
+		if ( nLossAmount < 0 ) { nLossAmount = 0; }
+		var nBaseAmount = parseInt( GameInterfaceAPI.GetSettingString( "cash_team_loser_bonus" ) );
+		var nConsecutiveBonus = parseInt( GameInterfaceAPI.GetSettingString( "cash_team_loser_bonus_consecutive_rounds" ) );
+		var nTotalAmount = nBaseAmount + ( nLossAmount * nConsecutiveBonus );
+		return nTotalAmount;
+	}
+
+	function _RoundLossBonusMoney_OnMouseOver_CT ()
+	{
+		_m_cP.SetDialogVariable( "round_loss_income_team", $.Localize( "#counter-terrorists" ) );
+		_m_cP.SetDialogVariableInt( "round_loss_income_amount", _RoundLossBonusMoneyForTeam( "CT" ) );
+		var sTooltipText = $.Localize( '#Scoreboard_lossmoneybonus_tooltip', _m_cP );
+		UiToolkitAPI.ShowTextTooltip( 'id-sb-timeline__round-loss-bonus-money', sTooltipText );
+	}
+	function _RoundLossBonusMoney_OnMouseOut_CT ()
+	{
+		UiToolkitAPI.HideTextTooltip();
+	}
+	function _RoundLossBonusMoney_OnMouseOver_TERRORIST ()
+	{
+		_m_cP.SetDialogVariable( "round_loss_income_team", $.Localize( "#terrorists" ) );
+		_m_cP.SetDialogVariableInt( "round_loss_income_amount", _RoundLossBonusMoneyForTeam( "TERRORIST" ) );
+		var sTooltipText = $.Localize( '#Scoreboard_lossmoneybonus_tooltip', _m_cP );
+		UiToolkitAPI.ShowTextTooltip( 'id-sb-timeline__round-loss-bonus-money', sTooltipText );
+	}
+	function _RoundLossBonusMoney_OnMouseOut_TERRORIST ()
+	{
+		UiToolkitAPI.HideTextTooltip();
+	}
+
 
 	function _UpdateTeamInfo ( team )
 	{
@@ -2560,6 +2602,8 @@ var Scoreboard = ( function()
 				_UpdateRound( currentRound - 1, oScoreData, jsoTime );
 			}
 		}
+
+		_UpdateRoundLossBonus();
 		
 	};
 
@@ -2662,12 +2706,46 @@ var Scoreboard = ( function()
 		return ( roundCountToEvaluate <= 30 );
 	}
 
+	function _UpdateRoundLossBonus()
+	{
+		var elRoundLossBonusMoney = _m_cP.FindChildInLayoutFile( "id-sb-timeline__round-loss-bonus-money" );
+		if ( elRoundLossBonusMoney && elRoundLossBonusMoney.IsValid() )
+		{
+			elRoundLossBonusMoney.AddClass( 'hidden' );
+
+			if (
+				parseInt( GameInterfaceAPI.GetSettingString( "mp_consecutive_loss_max" ) ) > 0 &&
+				parseInt( GameInterfaceAPI.GetSettingString( "cash_team_loser_bonus_consecutive_rounds" ) ) > 0
+			) {
+				var nLossT = GameStateAPI.GetTeamNextRoundLossBonus( "TERRORIST" );
+				var nLossCT = GameStateAPI.GetTeamNextRoundLossBonus( "CT" );
+				if ( nLossT >= 0 && nLossCT >= 0 )
+				{
+					elRoundLossBonusMoney.RemoveClass( 'hidden' );
+
+					for ( var nClassIdx = 1; nClassIdx <= 4; ++ nClassIdx )
+					{
+						elRoundLossBonusMoney.SetHasClass( 'sb-timeline__round-loss-bonus-money__TERRORIST' + nClassIdx, nLossT >= nClassIdx );
+					}
+
+					for ( var nClassIdx = 1; nClassIdx <= 4; ++ nClassIdx )
+					{
+						elRoundLossBonusMoney.SetHasClass( 'sb-timeline__round-loss-bonus-money__CT' + nClassIdx, nLossCT >= nClassIdx );
+					}
+				}
+			}
+		}
+	}
+
 	function _ResetTimeline ()
 	{
 		                                      
 
-		var elTimeline = _m_cP.FindChildInLayoutFile( "id-sb-timeline__segments" );
+		                                                     
+		_UpdateRoundLossBonus();
 
+		var elTimeline = _m_cP.FindChildInLayoutFile( "id-sb-timeline__segments" );
+		
 		if ( !elTimeline || !elTimeline.IsValid() )
 			return;
 
@@ -3248,6 +3326,10 @@ var Scoreboard = ( function()
 		ResetAndInit: 						_Initialize,
 		Casualties_OnMouseOver: 			_Casualties_OnMouseOver,
 		Casualties_OnMouseOut: 				_Casualties_OnMouseOut,
+		RoundLossBonusMoney_OnMouseOver_CT: _RoundLossBonusMoney_OnMouseOver_CT,
+		RoundLossBonusMoney_OnMouseOut_CT: _RoundLossBonusMoney_OnMouseOut_CT,
+		RoundLossBonusMoney_OnMouseOver_TERRORIST: _RoundLossBonusMoney_OnMouseOver_TERRORIST,
+		RoundLossBonusMoney_OnMouseOut_TERRORIST: _RoundLossBonusMoney_OnMouseOut_TERRORIST,
 		UpdateJob:							_UpdateJob,
 		CycleStats: 						_CycleStats,
 		OnMouseActive: 						_OnMouseActive,
@@ -3321,6 +3403,11 @@ var Scoreboard = ( function()
 
 	$.RegisterForUnhandledEvent( "Scoreboard_Casualties_OnMouseOver", Scoreboard.Casualties_OnMouseOver );
 	$.RegisterForUnhandledEvent( "Scoreboard_Casualties_OnMouseOut", Scoreboard.Casualties_OnMouseOut );
+
+	$.RegisterForUnhandledEvent( "Scoreboard_RoundLossBonusMoney_OnMouseOver_CT", Scoreboard.RoundLossBonusMoney_OnMouseOver_CT );
+	$.RegisterForUnhandledEvent( "Scoreboard_RoundLossBonusMoney_OnMouseOut_CT", Scoreboard.RoundLossBonusMoney_OnMouseOut_CT );
+	$.RegisterForUnhandledEvent( "Scoreboard_RoundLossBonusMoney_OnMouseOver_TERRORIST", Scoreboard.RoundLossBonusMoney_OnMouseOver_TERRORIST );
+	$.RegisterForUnhandledEvent( "Scoreboard_RoundLossBonusMoney_OnMouseOut_TERRORIST", Scoreboard.RoundLossBonusMoney_OnMouseOut_TERRORIST );
 
           	
 	                                                                                            

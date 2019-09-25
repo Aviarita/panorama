@@ -8,11 +8,17 @@ var InventoryPanel = ( function (){
 	var _m_elSelectItemForCapabilityPopup = $.GetContextPanel().FindChildInLayoutFile( 'SelectItemForCapabilityPopup' );
 	var _m_elInventorySearch = $.GetContextPanel().FindChildInLayoutFile( 'InvSearchPanel' );
 	var _m_isCapabliltyPopupOpen = false;
+	var _m_InventoryUpdatedHandler = null;
 
 	var _m_HiddenContentClassname = 'mainmenu-content--hidden';
 
 	var _Init = function()
 	{
+		if ( !_m_InventoryUpdatedHandler )
+		{
+			_m_InventoryUpdatedHandler = $.RegisterForUnhandledEvent( 'PanoramaComponent_MyPersona_InventoryUpdated', _InventoryUpdated );
+		}
+		
 		_RunEveryTimeInventoryIsShown();
 		_CreateCategoriesNavBar();
 		_LoadEquipNotification();
@@ -23,7 +29,6 @@ var InventoryPanel = ( function (){
 		{
 			vanityPanel.Pause( true );
 		}
-				
 	};
 
 	var _RunEveryTimeInventoryIsShown = function()
@@ -32,7 +37,7 @@ var InventoryPanel = ( function (){
 		                                                                                                 
 		                               
 		_OnShowAcknowledgePanel();
-
+		
 		if ( !MyPersonaAPI.IsInventoryValid() || !MyPersonaAPI.IsConnectedToGC() )
 		{
 			                                       
@@ -638,6 +643,16 @@ var InventoryPanel = ( function (){
 		_UpdateActiveInventoryList();
 		_UpdateLoadoutButtonState();
 
+		if ( !_m_elInventoryMain.updatePlayerEquipSlotChangedHandler )
+		{
+			_m_elInventoryMain.updatePlayerEquipSlotChangedHandler = $.RegisterForUnhandledEvent( 'PanoramaComponent_Inventory_PlayerEquipSlotChanged', InventoryPanel.ShowNotification );
+		}
+		
+		if ( !_m_InventoryUpdatedHandler )
+		{
+			_m_InventoryUpdatedHandler = $.RegisterForUnhandledEvent( 'PanoramaComponent_MyPersona_InventoryUpdated', _InventoryUpdated );
+		}
+
 		                                           	
 		var vanityPanel = $( '#JsMainmenu_Vanity' );
 		if ( vanityPanel && UiToolkitAPI.IsPanoramaInECOMode() )
@@ -994,7 +1009,19 @@ var InventoryPanel = ( function (){
 	
 	var _ClosePopups = function ()
 	{
-		if ( !$('#InvLoadoutPanel').BHasClass( _m_HiddenContentClassname ) )
+		if ( _m_elInventoryMain.updatePlayerEquipSlotChangedHandler )
+		{
+			$.UnregisterForUnhandledEvent( 'PanoramaComponent_Inventory_PlayerEquipSlotChanged', _m_elInventoryMain.updatePlayerEquipSlotChangedHandler );
+			_m_elInventoryMain.updatePlayerEquipSlotChangedHandler = null;
+		}
+
+		if ( _m_InventoryUpdatedHandler )
+		{
+			$.UnregisterForUnhandledEvent( 'PanoramaComponent_MyPersona_InventoryUpdated', _m_InventoryUpdatedHandler );
+			_m_InventoryUpdatedHandler = null;
+		}
+		
+		if ( !$( '#InvLoadoutPanel' ).BHasClass( _m_HiddenContentClassname ) )
 		{
 			_CloseLoadout();
 			return true;
@@ -1056,13 +1083,11 @@ var InventoryPanel = ( function (){
 
 	$.RegisterForUnhandledEvent('ShowSelectItemForCapabilityPopup', InventoryPanel.ShowSelectItemForCapabilityPopup );
 	$.RegisterForUnhandledEvent( 'HideSelectItemForCapabilityPopup', InventoryPanel.CloseSelectItemForCapabilityPopup );
-	$.RegisterForUnhandledEvent( 'PanoramaComponent_MyPersona_InventoryUpdated', InventoryPanel.InventoryUpdated );
 	$.RegisterForUnhandledEvent( 'CapabilityPopupIsOpen', InventoryPanel.SetIsCapabilityPopUpOpen );
 	$.RegisterForUnhandledEvent( 'RefreshActiveInventoryList', InventoryPanel.InventoryUpdated );
 	$.RegisterForUnhandledEvent( 'ShowDeleteItemConfirmationPopup', InventoryPanel.ShowDeleteItemConfirmation );
 	$.RegisterForUnhandledEvent( 'ShowUseItemOnceConfirmationPopup', InventoryPanel.ShowUseItemOnceConfirmation );
 	$.RegisterForUnhandledEvent( 'ShowResetMusicVolumePopup', InventoryPanel.ShowResetMusicConfirmation );
-	$.RegisterForUnhandledEvent( 'PanoramaComponent_Inventory_PlayerEquipSlotChanged', InventoryPanel.ShowNotification );
 	$.RegisterForUnhandledEvent( 'ShowLoadoutForItem', InventoryPanel.ShowLoadoutForItem );
 	$.RegisterForUnhandledEvent( 'PanoramaComponent_Inventory_CraftIngredientAdded', function () { InventoryPanel.UpdateCraftingPanelVisibility( true ); } );
 	$.RegisterForUnhandledEvent( 'ShowTradeUpPanel', function () { InventoryPanel.UpdateCraftingPanelVisibility( true ); } );

@@ -20,11 +20,19 @@ var NewsPanel = (function () {
 		feed[ 'items' ].forEach( function( item, i )
 		{
 			var elEntry = $.CreatePanel( 'Panel', elLister, 'NewEntry' + i, {
-				acceptsinput: true,
-				onactivate: 'SteamOverlayAPI.OpenURL( "' + item.link + '" );'
+				acceptsinput: true
 			} );
+
 			elEntry.BLoadLayoutSnippet( 'news-full-entry' );
-			elEntry.FindChildInLayoutFile( 'NewsHeaderImage' ).SetImage( item.imageUrl );
+			var elImage = elEntry.FindChildInLayoutFile( 'NewsHeaderImage' );
+			if ( item.imageUrl )
+			{
+				elImage.SetImage( item.imageUrl );
+			}
+			else
+			{
+				elImage.SetImage( "file://{images}/store/default-news.png" );
+			}
 
 			var elEntryInfo = $.CreatePanel( 'Panel', elEntry, 'NewsInfo' + i );
 			elEntryInfo.BLoadLayoutSnippet( 'news-info' );
@@ -35,24 +43,14 @@ var NewsPanel = (function () {
 
 			         
 			elEntry.FindChildInLayoutFile( 'NewsEntryBlurTarget' ).AddBlurPanel( elEntryInfo );
+
+			elEntry.SetPanelEvent( "onactivate", SteamOverlayAPI.OpenURL.bind( SteamOverlayAPI, item.link ) );
 		} );
-	};
-
-	var _OnSteamIsPlaying = function()
-	{
-		$.GetContextPanel().SetHasClass( 'news-panel-style-video-playing', EmbeddedStreamAPI.IsVideoPlaying() );
-	};
-
-	var _ResetNewsEntryStyle = function()
-	{
-		$.GetContextPanel().RemoveClass( 'news-panel-style-video-playing' );
 	};
 
 	return {
 		GetRssFeed			: _GetRssFeed,
 		OnRssFeedReceived: _OnRssFeedReceived,
-		OnSteamIsPlaying: _OnSteamIsPlaying,
-		ResetNewsEntryStyle: _ResetNewsEntryStyle
 	};
 })();
 
@@ -60,6 +58,4 @@ var NewsPanel = (function () {
 (function () {
 	NewsPanel.GetRssFeed();
 	$.RegisterForUnhandledEvent( "PanoramaComponent_Blog_RSSFeedReceived", NewsPanel.OnRssFeedReceived );
-	$.RegisterForUnhandledEvent( "PanoramaComponent_EmbeddedStream_VideoPlaying", NewsPanel.OnSteamIsPlaying );
-	$.RegisterForUnhandledEvent( "StreamPanelClosed", NewsPanel.ResetNewsEntryStyle );
 })();

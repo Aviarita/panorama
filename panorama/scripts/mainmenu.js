@@ -39,7 +39,7 @@ var MainMenu = ( function() {
 		var defaultMovie = 'nuke';
 
 		                                                                 
-		var overrideMovie = 'blacksite';
+		var overrideMovie = 'sirocco';
 		var backgroundMovie = overrideMovie;
 
 		                                                            
@@ -85,6 +85,9 @@ var MainMenu = ( function() {
 
 		                                                                          
 		_DeleteSurvivalEndOfMatch();
+
+		                                                               
+		_ShowHideAlertForNewEventForWatchBtn();
 	};
 
 	var _TournamentDraftUpdate = function ()
@@ -422,7 +425,6 @@ var MainMenu = ( function() {
 		}
 	};
 
-
 	                                                                                                    
 	                                              
 	                                                                                                    
@@ -432,7 +434,7 @@ var MainMenu = ( function() {
 	};
 
 	                              
-	var _ExpandSidebar = function( )
+	var _ExpandSidebar = function( AutoClose = false )
 	{
 		var elSidebar = $( '#JsMainMenuSidebar' );
 
@@ -444,6 +446,11 @@ var MainMenu = ( function() {
 
 		$.DispatchEvent( 'SidebarIsCollapsed', false );
 		_DimMainMenuBackground( false );
+
+		if ( AutoClose )
+		{
+			$.Schedule( 1, _MinimizeSidebar );
+		}
 	};
 
 	var _MinimizeSidebar = function()
@@ -582,7 +589,12 @@ var MainMenu = ( function() {
 		};
 
 		_ShowNewsAndStore();
+
+		                                     
 		_AddFeaturedPanel();
+
+		_AddWatchNoticePanel();
+		
 	};
 
 	var _AddStream = function()
@@ -593,16 +605,28 @@ var MainMenu = ( function() {
 
 	var _AddFeaturedPanel = function()
 	{
-		                  
-		var featuredXML = 'file://{resources}/layout/mainmenu_featured.xml';
+		                 
+		                                                                                 
+		                                                                      
+		var featuredXML = 'file://{resources}/layout/mainmenu_tournament_pass_status.xml';
 
 		var elPanel = $.CreatePanel( 'Panel', $.FindChildInContext( '#JsNewsContainer' ), 'JsFeaturedPanel' );
 		elPanel.BLoadLayout( featuredXML, false, false );
 
 		$.FindChildInContext( '#JsNewsContainer' ).MoveChildBefore( elPanel, $.FindChildInContext( '#JsNewsPanel' ) );
-		$.FindChildInContext( '#JsNewsPanel' ).AddClass( 'news-panel-style-feature-panel-visible' );
+
+		                                                                                                 
+		$.FindChildInContext( '#JsNewsContainer' ).AddClass( 'news-panel-style-feature-panel-visible' );
 	};
 
+	var _AddWatchNoticePanel = function()
+	{
+		var WatchNoticeXML = 'file://{resources}/layout/mainmenu_watchnotice.xml';
+		var elPanel = $.CreatePanel( 'Panel', $.FindChildInContext( '#JsNewsContainer' ), 'JsWatchNoticePanel' );
+		$.FindChildInContext( '#JsNewsContainer' ).MoveChildAfter( elPanel, $( "#JsNewsPanel") );
+		elPanel.BLoadLayout( WatchNoticeXML, false, false );
+	}
+	
 	var _ShowNewsAndStore = function ()
 	{
 		var elNews = $.FindChildInContext( '#JsNewsContainer' );
@@ -614,6 +638,28 @@ var MainMenu = ( function() {
 		var elNews = $.FindChildInContext( '#JsNewsContainer' );
 		elNews.SetHasClass( 'hidden', true );
 	};
+
+	                                                                
+	                                                             
+	var _OnSteamIsPlaying = function()
+    {
+		var elNewsContainer = $.FindChildInContext( '#JsNewsContainer' );
+
+		if ( elNewsContainer )
+		{
+			elNewsContainer.SetHasClass( 'mainmenu-news-container-stream-active', EmbeddedStreamAPI.IsVideoPlaying() );
+		}
+    };
+
+    var _ResetNewsEntryStyle = function()
+    {
+		var elNewsContainer = $.FindChildInContext( '#JsNewsContainer' );
+
+		if ( elNewsContainer )
+		{
+			elNewsContainer.RemoveClass( 'mainmenu-news-container-stream-active' );
+		}
+    };
 
 	                                                                                                    
 	                     
@@ -826,7 +872,7 @@ var MainMenu = ( function() {
 		_NavigateToTab( 'JsPlay', 'mainmenu_play' );
 
 		                                           	
-		_PauseMainMenuCharacter();		
+		_PauseMainMenuCharacter();
 	};
 
 	var _OpenWatchMenu = function()
@@ -1330,17 +1376,22 @@ var MainMenu = ( function() {
 
 		function CreateEndOfMatchPanel ()
 		{
-			var elPanel = $.CreatePanel(
-				'CSGOSurvivalEndOfMatch',
-				$( '#MainMenuBackground' ),
-				'PauseMenuSurvivalEndOfMatch',
-				{
-					class: 'PauseMenuModeOnly'
-				}
-			);
+			var elPanel = $( '#PauseMenuSurvivalEndOfMatch' );
 
-			
-			elPanel.SetAttributeString( 'pausemenu', 'true' );
+			if ( !elPanel )
+			{
+				elPanel = $.CreatePanel(
+					'CSGOSurvivalEndOfMatch',
+					$( '#MainMenuBackground' ),
+					'PauseMenuSurvivalEndOfMatch',
+					{
+						class: 'PauseMenuModeOnly'
+					}
+				);
+
+				elPanel.SetAttributeString( 'pausemenu', 'true' );
+			}
+
 			_UpdateSurvivalEndOfMatchInstance();
 		}
 
@@ -1364,6 +1415,23 @@ var MainMenu = ( function() {
 			$( '#PauseMenuSurvivalEndOfMatch' ).matchStatus.UpdateFromPauseMenu();
 		}
 	}
+
+	var _ShowHideAlertForNewEventForWatchBtn = function()
+	{
+		                                                                               
+		                                                                
+		  
+		                                                                                  
+		                                                    
+		  
+		                                            
+	};
+
+	var _WatchBtnPressedUpdateAlert = function()
+	{
+		                                                                        
+		_ShowHideAlertForNewEventForWatchBtn();
+	};
 
 	return {
 		OnInitFadeUp						: _OnInitFadeUp,
@@ -1406,7 +1474,10 @@ var MainMenu = ( function() {
 		PauseMainMenuCharacter				: _PauseMainMenuCharacter,
 		ShowTournamentStore					: _ShowTournamentStore,
 		TournamentDraftUpdate				: _TournamentDraftUpdate,
-		ResetSurvivalEndOfMatch				: _ResetSurvivalEndOfMatch
+		ResetSurvivalEndOfMatch				: _ResetSurvivalEndOfMatch,
+		ResetNewsEntryStyle					: _ResetNewsEntryStyle,
+		OnSteamIsPlaying					: _OnSteamIsPlaying,
+		WatchBtnPressedUpdateAlert			: _WatchBtnPressedUpdateAlert
 	};
 })();
 
@@ -1442,13 +1513,19 @@ var MainMenu = ( function() {
 	$.RegisterForUnhandledEvent( 'ShowVoteContextMenu', MainMenu.ShowVote );
 	$.RegisterForUnhandledEvent( 'ShowTournamentStore', MainMenu.ShowTournamentStore );
 
-	$.RegisterForUnhandledEvent( 'OnMapConfigLoaded', MainMenu.ResetSurvivalEndOfMatch );
+  	                                                                                     
+	$.RegisterForUnhandledEvent( 'UnloadLoadingScreenAndReinit', MainMenu.ResetSurvivalEndOfMatch );
+
+	$.RegisterForUnhandledEvent( "PanoramaComponent_EmbeddedStream_VideoPlaying", MainMenu.OnSteamIsPlaying );
+	$.RegisterForUnhandledEvent( "StreamPanelClosed", MainMenu.ResetNewsEntryStyle );
+	
 	
 	MainMenu.MinimizeSidebar();
 	MainMenu.InitVanity();
 	MainMenu.MinimizeSidebar();
 	MainMenu.InitFriendsList();
 	MainMenu.InitNewsAndStore();
+
 
 	                                                                                  
 	$.RegisterEventHandler( "Cancelled", $.GetContextPanel(), MainMenu.OnEscapeKeyPressed );
