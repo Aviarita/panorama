@@ -34,7 +34,7 @@ Button.PopupButton
 	margin: 4px;
 	padding: 8px;
 	min-width: 230px;
-	height: 260px;
+	                    
 }
 
 
@@ -65,18 +65,50 @@ Button.PopupButton
 {
 	horizontal-align: center;
 	width: 172px;
+
+	transition-property: transform;
+	transition-duration: .20s;
+	transition-timing-function: ease-in-out;
+}
+
+.item__image__inspect
+{
+	opacity: 0;
+	transform: scale3d( .5, .5, .5 );
+	img-shadow: 2px 2px 6px 2 #000000;
+
+	transition-property: opacity, transform;
+	transition-duration: .20s;
+	transition-timing-function: ease-in-out;
 }
 
 .item__image:hover
 {
-	brightness : 2;
 	transform: scale3d( 1.1, 1.1, 1.1 );
 	
-	transition-property: brightness, transform;
+	transition-property: transform;
 	transition-duration: .20s;
 	transition-timing-function: ease-in-out;
 
 	sound-trans: "UIPanorama.store_item_rollover";
+}
+
+.item__image:hover .item__image__inspect
+{
+	opacity: 1;
+	transform: scale3d( 1, 1, 1 );
+
+	transition-property: opacity, transform;
+	transition-duration: .20s;
+	transition-timing-function: ease-in-out;
+}
+
+.cart-controls-row
+{
+	flow-children: right;
+	horizontal-align: center;
+	width: 100%;
+	min-height: 52px;
 }
 
 .cart-controls .item__add-button

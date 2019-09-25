@@ -113,11 +113,15 @@
 {
 	margin-left: 0px;
 	min-height: 60px;
+	max-height: 920px;
+	overflow: squish scroll;
 }
 #ContextMenuBody.RightArrowVisible #Contents
 {
 	margin-right: 0px;
 	min-height: 60px;
+	max-height: 920px;
+	overflow: squish scroll;
 }
 #ContextMenuBody.BottomArrowVisible #Contents
 {
@@ -140,4 +144,20 @@
 .ContextMenuBodyRow
 {
 	flow-children: right;
+}
+
+.CartTournamentPasses
+{
+	background-color: rgba(0, 0, 0, 0.658);
+}
+
+.CartTournamentPasses #ContextMenuBody
+{
+	horizontal-align: center;
+	vertical-align: center;
+	ui-scale: 150%;
+	
+	transition-property: transform;
+	transition-duration: .20s;
+	transition-timing-function: ease-in-out;
 }
