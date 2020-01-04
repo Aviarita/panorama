@@ -52,16 +52,108 @@ var ItemContextEntires = ( function (){
 				return ( ( slotsub ) && ( slotsub.startsWith( "equipment" ) || slotsub.startsWith( "grenade" ) ) ) ? '' : 'BottomSeparator';
 			},
 			AvailableForItem: function ( id ) {
+				                              
+				var defName = InventoryAPI.GetItemDefinitionName( id );
+				if ( defName === 'casket' )
+					return InventoryAPI.GetItemAttributeValue( id, 'modification date' ) ? true : false;
+
 				                                                                 
-				return ( ( ItemInfo.GetSlotSubPosition( id ) ||
-					ItemInfo.ItemMatchDefName( id, 'sticker' ) ||
-					ItemInfo.ItemMatchDefName( id, 'spray' ) ) &&
-					!ItemInfo.ItemDefinitionNameSubstrMatch( id, 'tournament_journal_' )                                                      
-				);
+				return ItemInfo.IsPreviewable( id );
 			},
 			OnSelected:  function ( id ) {
 				$.DispatchEvent( 'ContextMenuEvent', '' );
+				
+				var defName = InventoryAPI.GetItemDefinitionName( id );
+				if ( defName === 'casket' ) {	                              
+					if ( InventoryAPI.GetItemAttributeValue( id, 'items count' ) ) {
+						               
+						UiToolkitAPI.ShowCustomLayoutPopupParameters(
+							'', 
+							'file://{resources}/layout/popups/popup_casket_operation.xml',
+							'op=loadcontents' +
+							'&nextcapability=casketcontents' +
+							'&spinner=1' +
+							'&casket_item_id=' + id +
+							'&subject_item_id=' + id
+						);
+					} else {
+						UiToolkitAPI.ShowGenericPopupOk(
+							$.Localize( '#popup_casket_title_error_casket_empty' ),
+							$.Localize( '#popup_casket_message_error_casket_empty' ),
+							'',
+							function()
+							{
+							},
+							function()
+							{
+							}
+						);
+					}
+					return;
+				}
+
 				$.DispatchEvent( "InventoryItemPreview", id );
+			}
+		},
+		{
+			name: 'bulkretrieve',
+			populateFilter: ['loadout'],
+			AvailableForItem: function ( id ) {
+				                                           
+				var defName = InventoryAPI.GetItemDefinitionName( id );
+				return ( defName === 'casket' ) && InventoryAPI.GetItemAttributeValue( id, 'modification date' );
+			},
+			OnSelected:  function ( id ) {
+				$.DispatchEvent( 'ContextMenuEvent', '' );
+				
+				var defName = InventoryAPI.GetItemDefinitionName( id );
+				if ( defName === 'casket' ) {	                              
+					if ( InventoryAPI.GetItemAttributeValue( id, 'items count' ) ) {
+						               
+						UiToolkitAPI.ShowCustomLayoutPopupParameters(
+							'', 
+							'file://{resources}/layout/popups/popup_casket_operation.xml',
+							'op=loadcontents' +
+							'&nextcapability=casketretrieve' +
+							'&spinner=1' +
+							'&casket_item_id=' + id +
+							'&subject_item_id=' + id
+						);
+					} else {
+						UiToolkitAPI.ShowGenericPopupOk(
+							$.Localize( '#popup_casket_title_error_casket_empty' ),
+							$.Localize( '#popup_casket_message_error_casket_empty' ),
+							'',
+							function()
+							{
+							},
+							function()
+							{
+							}
+						);
+					}
+					return;
+				}
+			}
+		},
+		{
+			name: 'bulkstore',
+			populateFilter: ['loadout'],
+			style: function (id){
+				return 'BottomSeparator';
+			},
+			AvailableForItem: function ( id ) {
+				                                           
+				var defName = InventoryAPI.GetItemDefinitionName( id );
+				return ( defName === 'casket' ) && InventoryAPI.GetItemAttributeValue( id, 'modification date' );
+			},
+			OnSelected:  function ( id ) {
+				$.DispatchEvent( 'ContextMenuEvent', '' );
+				
+				var defName = InventoryAPI.GetItemDefinitionName( id );
+				if ( defName === 'casket' ) {	                              
+					$.DispatchEvent( "ShowSelectItemForCapabilityPopup", 'casketstore', id, '' );
+				}
 			}
 		},
 		{
@@ -271,7 +363,7 @@ var ItemContextEntires = ( function (){
 		},
 		                                                           
 		    
-			                        
+		   	                        
 		   	                              
 		   	                                       
 		   	                                   
@@ -485,14 +577,16 @@ var ItemContextEntires = ( function (){
 			}
 		},
 		{
-			name: 'open_package',
+			name: function( id )
+			{
+				return InventoryAPI.GetDecodeableRestriction( id ) === 'xray' && !ItemInfo.IsTool( id ) ? 'look_inside' : _IsKeyForXrayItem( id ) !== '' ? 'goto_xray' : 'open_package';
+			},
 			AvailableForItem: function ( id ) {
 				return ItemInfo.ItemHasCapability( id, 'decodable' );
 			},
 			OnSelected: function( id )
 			{
 				$.DispatchEvent( 'ContextMenuEvent', '' );
-				var keyId = '';
 
 				if ( ItemInfo.GetChosenActionItemsCount( id, 'decodable' ) === 0 )
 				{
@@ -500,6 +594,7 @@ var ItemContextEntires = ( function (){
 					{
 						                                                             
 						$.DispatchEvent( "ShowSelectItemForCapabilityPopup", 'decodable', id, '' );
+		
 					}
 					else
 					{
@@ -515,17 +610,79 @@ var ItemContextEntires = ( function (){
 					return;
 				}
 				
+				if ( ItemInfo.GetChosenActionItemsCount( id, 'decodable' ) > 0 && ItemInfo.IsTool( id ) && InventoryAPI.GetDecodeableRestriction( id ) === 'xray' )
+				{
+						                                
+						var caseId = _IsKeyForXrayItem( id );
+						if ( caseId )
+						{
+							$.DispatchEvent( "ShowXrayCasePopup", id, caseId, false );
+							$.DispatchEvent( 'ContextMenuEvent', '' );
+							return;
+						}
+				}
+
+				if ( !ItemInfo.IsTool( id ) && InventoryAPI.GetDecodeableRestriction( id ) === 'xray' )
+				{
+					UiToolkitAPI.ShowCustomLayoutPopupParameters(
+						'',
+						'file://{resources}/layout/popups/popup_capability_decodable.xml',
+						'key-and-case=,' + id +
+						'&' + 'asyncworktype=decodeable'
+					);
+					return;
+				}
+				
 				$.DispatchEvent( "ShowSelectItemForCapabilityPopup", 'decodable', id, '' );
 			}
 		},
+		    
+		   	             
+		   	                                   
+		   		                                                       
+		   			                         
+		   			                                                       
+		   	  
+		   	                       
+		   		                      
+		   	  
+		   	                          
+		   	 
+		   		                                          
+		   		                                           
+		   	 
+		     
 		{
-			name: 'nameable',
+			name: function( id )
+			{
+				var strActionName = 'nameable';
+				var defName = InventoryAPI.GetItemDefinitionName( id );
+				if ( defName === 'casket' ) {
+					                                                                                                    
+					return InventoryAPI.GetItemAttributeValue( id, 'modification date' ) ? 'yourcasket' : 'newcasket';
+				}
+				return strActionName;
+			},
 			AvailableForItem: function ( id ) {
 				return ItemInfo.ItemHasCapability( id, 'nameable' );
 			},
 			OnSelected:  function ( id ) {
 
-				if( _DoesNotHaveChosenActionItems( id, 'nameable' ) )
+				var defName = InventoryAPI.GetItemDefinitionName( id );
+				if ( defName === 'casket' ) {
+					                                                                                                    
+					var fauxNameTag = InventoryAPI.GetFauxItemIDFromDefAndPaintIndex( 1200, 0 );              
+					var noteText = InventoryAPI.GetItemAttributeValue( id, 'modification date' ) ? 'yourcasket' : 'newcasket';
+					$.DispatchEvent( 'ContextMenuEvent', '' );
+					UiToolkitAPI.ShowCustomLayoutPopupParameters(
+						'', 
+						'file://{resources}/layout/popups/popup_capability_nameable.xml',
+						'nametag-and-itemtoname=' + fauxNameTag + ',' + id +
+						'&' + 'asyncworktype=nameable' +
+						'&' + 'asyncworkitemwarningtext=#popup_'+noteText+'_warning'
+					);
+				}
+				else if( _DoesNotHaveChosenActionItems( id, 'nameable' ) )
 				{
 					var nameTagId = '',
 					itemToNameId = id;
@@ -694,10 +851,39 @@ var ItemContextEntires = ( function (){
 			}
 		},
 		{
-			name: 'sell',
+			name: 'intocasket',
 			style: function (id){
 				return 'TopSeparator';
 			},
+			AvailableForItem: function ( id ) {
+				return InventoryAPI.IsMarketable( id );
+			},
+			OnSelected: function ( id ) {
+				$.DispatchEvent( 'ContextMenuEvent', '' );
+				if ( ItemInfo.GetChosenActionItemsCount( id, 'can_collect' ) > 0 ) {                 
+					$.DispatchEvent( "ShowSelectItemForCapabilityPopup", 'can_collect', id, '' );
+				} else {                
+					var fauxCasket = InventoryAPI.GetFauxItemIDFromDefAndPaintIndex( 1201, 0 );            
+					UiToolkitAPI.ShowCustomLayoutPopupParameters(
+						'',
+						'file://{resources}/layout/popups/popup_inventory_inspect.xml',
+						'itemid=' + fauxCasket
+						+ '&' +
+						'inspectonly=false'
+						+ '&' +
+						'asyncworkitemwarning=no'
+						+ '&' +
+						'storeitemid=' + fauxCasket,
+						'none'
+					);
+				}
+		}
+		},
+		{
+			name: 'sell',
+			                       
+			  	                      
+			    
 			AvailableForItem: function ( id ) {
 				return InventoryAPI.IsMarketable( id );
 			},
@@ -732,6 +918,8 @@ var ItemContextEntires = ( function (){
 	                                                                                                    
 	                                
 	                                                                                                    
+	                                                                                                                                                  
+	
 	var _GetItemToReplaceName = function( id, team )
 	{
 		var currentEquippedItem = ItemInfo.GetItemIdForItemEquippedInLoadoutSlot( id, team );
@@ -754,7 +942,40 @@ var ItemContextEntires = ( function (){
 		if ( slot === null || slot === undefined || slot === '' )
 			slot = ItemInfo.GetSlotSubPosition( id );                                                   
 		
+		var teamShownOnMainMenu = GameInterfaceAPI.GetSettingString( 'ui_vanitysetting_team' );
 		team.forEach( element => LoadoutAPI.EquipItemInSlot( element, id, slot ) );
+
+		                                               
+		var bNeedToRestartMainMenuVanity = false;
+		if ( ItemInfo.IsCharacter( id ) )
+		{
+			var teamOfCharacter = ( ItemInfo.GetTeam( id ).search( 'Team_T' ) === -1 ) ? 'ct' : 't';
+			if ( teamOfCharacter !== teamShownOnMainMenu ) {                                                      
+				GameInterfaceAPI.SetSettingString( 'ui_vanitysetting_team', teamOfCharacter );
+			}
+			                                                
+			bNeedToRestartMainMenuVanity = true;
+		}
+		else
+		{
+			                                                       
+			                                                            
+			                                                    
+			team.filter( function( e ) { return e === teamShownOnMainMenu } );
+			if ( team.length > 0 ) {
+				if ( ( slot === 'clothing_hands' ) ||
+					( slot === GameInterfaceAPI.GetSettingString( 'ui_vanitysetting_loadoutslot_' + teamShownOnMainMenu ) )
+					) {
+					bNeedToRestartMainMenuVanity = true;
+				}
+			}
+		}
+
+		                                         
+		if ( bNeedToRestartMainMenuVanity )
+		{
+			$.DispatchEvent( 'ForceRestartVanity' );
+		}
 	};
 
 	var _DoesNotHaveChosenActionItems = function( id, capability )
@@ -791,7 +1012,28 @@ var ItemContextEntires = ( function (){
 
 	var _CanEquipItem = function( itemID )
 	{
-		return ItemInfo.GetSlotSubPosition( itemID ) && !ItemInfo.IsEquippalbleButNotAWeapon( itemID ) && LoadoutAPI.IsLoadoutAllowed();
+		return ItemInfo.GetSlotSubPosition( itemID ) && !ItemInfo.IsEquippableThroughContextMenu( itemID ) && LoadoutAPI.IsLoadoutAllowed();
+	};
+
+	var _IsKeyForXrayItem = function( id )
+	{
+		var oData = ItemInfo.GetItemsInXray();
+		if ( oData.case && oData.reward )
+		{
+			var numActionItems = ItemInfo.GetChosenActionItemsCount( oData.case, 'decodable' );
+			if ( numActionItems > 0 )
+			{
+				for ( var i = 0; i < numActionItems; i++ )
+				{
+					if ( id === ItemInfo.GetChosenActionItemIDByIndex( oData.case, 'decodable', i ) )
+					{
+						return oData.case;
+					}
+				}
+			}
+		}
+
+		return '';
 	};
 
 	return {

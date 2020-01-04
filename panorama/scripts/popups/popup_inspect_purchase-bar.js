@@ -6,14 +6,26 @@ var InpsectPurchaseBar = ( function()
 	var m_storeItemid = '';                                                                      
 	var m_elPanel = null;
 	var m_showToolUpsell = false;                                                             
+	var m_isXrayMode = false;
+	var m_allowXrayPurchase = false;
+	var m_bOverridePurchaseMultiple = false;
+	var m_blurOperationPanel = false;
 
 	var _Init = function( elPanel, itemId, funcGetSettingCallback )
 	{
 		m_storeItemid = funcGetSettingCallback( "storeitemid", "" );
+		m_bOverridePurchaseMultiple = ( funcGetSettingCallback( "overridepurchasemultiple", "" ) === '1' ) ? true : false;
+		m_blurOperationPanel = ( $.GetContextPanel().GetAttributeString( 'bluroperationpanel', 'false' ) === 'true' ) ? true : false;
 		
 		                                                     
 		                                          
 		m_itemid = !m_storeItemid ? itemId : m_storeItemid;
+
+		                                                          
+		                                                    
+		                                                                                           
+		                                                                                                                                                                                                    
+		                                                                                   
 
 		if ( !ItemInfo.GetStoreOriginalPrice( m_itemid, 1 ) ||
 			( funcGetSettingCallback( 'inspectonly', 'false' ) === 'true' ) ||
@@ -25,11 +37,12 @@ var InpsectPurchaseBar = ( function()
 		}
 
 		m_elPanel = elPanel;
+		m_isXrayMode = ( funcGetSettingCallback( "isxraymode", "no" ) === 'yes' ) ? true : false;
+		m_allowXrayPurchase = ( funcGetSettingCallback( "allowxraypurchase", "no" ) === 'yes' ) ? true : false;
 		m_showToolUpsell = (funcGetSettingCallback( "toolid", '' )) === '' ? true : false;
-		elPanel.RemoveClass( 'hidden' );
-	
-		elPanel.FindChildInLayoutFile( 'PurchaseItemImage' ).itemid = itemId;
+		elPanel.RemoveClass( 'hidden' );	
 
+		_SetPurchaseImage( elPanel, itemId );
 		_SetDialogVariables( elPanel, m_itemid );
 		_UpdateDecString( elPanel );
 		_SetUpPurchaseBtn( elPanel );
@@ -40,18 +53,33 @@ var InpsectPurchaseBar = ( function()
 	{
 		elPanel.SetDialogVariable( "itemname", ItemInfo.GetName( itemId ) );
 	};
-	
-	var _UpdateDecString = function ( ePanel )
+
+	var _SetPurchaseImage = function( elPanel, itemId )
+	{
+		var elImage = elPanel.FindChildInLayoutFile( 'PurchaseItemImage' );
+		elImage.itemid = itemId;
+		elImage.SetHasClass( 'popup-capability-faded', m_isXrayMode && !m_allowXrayPurchase );
+	};
+
+	var _UpdateDecString = function ( elPanel )
 	{
 		var elDesc = m_elPanel.FindChildInLayoutFile( 'PurchaseItemName' );
-		if ( !m_storeItemid && m_showToolUpsell )
+
+		if ( m_isXrayMode )
 		{
-		    elDesc.text = "#popup_capability_upsell";
-        }
-        else
-        {
-		    elDesc.text = "#popup_capability_use";
+			elPanel.SetDialogVariable( "itemprice", ItemInfo.GetStoreSalePrice( m_itemid, 1 ) );
+			elDesc.text = "#popup_capability_upsell_xray";
 		}
+		else if ( !m_storeItemid && m_showToolUpsell )
+		{
+			elDesc.text = "#popup_capability_upsell";
+		}
+		else
+		{
+			elDesc.text = "#popup_capability_use";
+		}
+
+		elDesc.SetHasClass( 'popup-capability-faded', m_isXrayMode && !m_allowXrayPurchase );
 	};
 
 	var _UpdatePurchasePrice = function ()
@@ -63,30 +91,44 @@ var InpsectPurchaseBar = ( function()
 		var elDropdown = m_elPanel.FindChildInLayoutFile( 'PurchaseCountDropdown' );
 		var qty = 1;
 
-		elDropdown.visible = !_isCoupon();
-
-		if( !_isCoupon() )
+		var bCanShowQuantityDropdown = !m_isXrayMode && _isAllowedToPurchaseMultiple();
+		elDropdown.visible = bCanShowQuantityDropdown;
+		if( bCanShowQuantityDropdown )
 		{
-			elDropdown.visible = true;
 			qty = Number( elDropdown.GetSelected().id );
 		}
 
 		var salePrice = ItemInfo.GetStoreSalePrice( m_itemid, qty );
-		elBtn.text = salePrice;
+		elBtn.text = m_isXrayMode ? '#popup_totool_purchase_header' :  salePrice;
 
 		_UpdateSalePrice( ItemInfo.GetStoreOriginalPrice( m_itemid, qty ) );
 	};
 
-	var _isCoupon = function()
+	var _isAllowedToPurchaseMultiple = function()
 	{
+		if ( m_bOverridePurchaseMultiple )
+			return true;                                             
+
 		var itemType = InventoryAPI.GetItemTypeFromEnum( m_itemid );
 		                                 
-		return ( itemType === 'coupon' || itemType === 'coupon_crate' ) ? true : false;
+		if ( itemType === 'coupon' || itemType === 'coupon_crate' )
+			return false;                                                        
+
+		var attValue = InventoryAPI.GetItemAttributeValue( m_itemid, 'season access' );
+		if ( attValue )
+			return false;                                                                  
+
+		var defName = InventoryAPI.GetItemDefinitionName( m_itemid );
+		if ( defName === 'casket' )
+			return false;                                                                               
+
+		return true;
 	};
 
 	var _SetUpPurchaseBtn = function ( elPanel )
 	{
-		elPanel.FindChildInLayoutFile( 'PurchaseBtn' ).SetPanelEvent( 'onactivate', _OnActivate);
+		elPanel.FindChildInLayoutFile( 'PurchaseBtn' ).enabled = !m_isXrayMode || ( m_isXrayMode && m_allowXrayPurchase );
+		elPanel.FindChildInLayoutFile( 'PurchaseBtn' ).SetPanelEvent( 'onactivate', _OnActivate );
 	};
 
 	var _UpdateSalePrice = function( salePrice )
@@ -133,6 +175,11 @@ var InpsectPurchaseBar = ( function()
 	var _ClosePopup = function()
 	{
 		InventoryAPI.StopItemPreviewMusic();
+
+		if( m_blurOperationPanel )
+		{
+			$.DispatchEvent( 'UnblurOperationPanel' );
+		}
 
 		$.DispatchEvent( 'HideSelectItemForCapabilityPopup' );
 		$.DispatchEvent( 'UIPopupButtonClicked', '' );
