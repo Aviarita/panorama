@@ -18,21 +18,18 @@
 	                                                                
 
 	<Panel class="TestContents">
-		<Label text="Scene Panel - Debug Lights Mode" />
+		<Label text="Scene Panel - Debug Scene Mode" />
 		<Label text="" />
 		<Label text="left-click + drag - orbit cam rotate" />
 		<Label text="right-click + drag - orbit cam in/out" />
 		<Label text="" />
-		<Label text="ctrl + left-click + drag - rotate light" />
-		<Label text="ctrl + middle-click + drag - relocate flashlight pivot" />
-		<Label text="ctrl + right-click + drag - flashlight in/out" />
+		<Label text="ctrl + left-click + drag - rotate scene context" />
+		<Label text="ctrl + middle-click + drag - move scene context" />
 		<Label text="" />
-		<Label text="a - toggle selected vs all lights" />
-		<Label text="s - stop/play light animation" />
-		<Label text="x - toggle floor, axis rendering" />
+		<Label text="[ - previous scene context" />
+		<Label text="] - next scene context" />
 		<Label text="" />
-		<Label text="ctrl + c - copy lights to clipboard" />
-		<Label text="('all lights' mode copies for manifest, 'selected' mode copies for JS)" />
+		<Label text="ctrl + c - copy scene setup (as JS) to clipboard" />
 		<Label text="" />
 		<Label text="alt + left-click + drag - reposition debug panel" />
 	</Panel>

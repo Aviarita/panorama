@@ -143,6 +143,16 @@
 					</Panel>
 					<Panel class="horizontal-separator"/>
 
+					                                      
+					<Panel id="id-friendlyfirecrosshair" class="SettingsMenuDropdownContainer">
+						<Label text="#GameUI_CrosshairStyle_Friendly" class="half-width"/>
+						<CSGOSettingsEnumDropDown class="PopupButton White" convar="cl_crosshair_friendly_warning">
+							<Label text="#GameUI_CrosshairFriendlyWarning_Off" id="crosshairfriendlywarning0" value="0"/>
+							<Label text="#GameUI_CrosshairFriendlyWarning_Default"	id="crosshairfriendlywarning1" value="1"/>
+							<Label text="#GameUI_CrosshairFriendlyWarning_On" id="crosshairfriendlywarning2" value="2"/>
+						</CSGOSettingsEnumDropDown>
+					</Panel>
+
 					                
 					<TooltipPanel class="SettingsMenuDropdownContainer" tooltip="#SFUI_Settings_HUDScaling_Info">
 						<CSGOSettingsSlider text="#SFUI_Settings_HUDScaling" max="0.95" min="0.5" displayprecision="2" convar="hud_scaling"/>
@@ -248,12 +258,12 @@
 					<Panel class="horizontal-separator"/>
 					
 					                                    
-					<Panel class="SettingsMenuDropdownContainer">
+					<Panel id="TeamateOverheadIDSetting" class="SettingsMenuDropdownContainer">
 						<Label text="#SFUI_Settings_Identify_Teammates" class="half-width"/>
-						<CSGOSettingsEnumDropDown class="PopupButton White" convar="cl_teamid_overhead_always">
-							<Label text="#GameUI_Off" value="0" id="clteamidoverheadalways0"/>
-							<Label text="#GameUI_Settings_ShowLocation" value="1" id="clteamidoverheadalways1"/>
+						<CSGOSettingsEnumDropDown class="PopupButton White" convar="cl_teamid_overhead_mode">
 							<Label text="#GameUI_Settings_ShowLocationAndEquipment" value="2" id="clteamidoverheadalways2"/>
+							<Label text="#GameUI_Settings_ShowLocation" value="1" id="clteamidoverheadalways1"/>
+							<Label text="#GameUI_Off" value="0" id="clteamidoverheadalways0"/>
 						</CSGOSettingsEnumDropDown>
 					</Panel>
 					<Panel class="horizontal-separator"/>
@@ -479,6 +489,16 @@
 					</Panel>
 					<Panel class="horizontal-separator"/>
 
+					                                    
+					<Panel class="SettingsMenuDropdownContainer">
+						<Label text="#Cstrike_Delay_Unzoom_Sniper" class="half-width"/>
+						<CSGOSettingsEnumDropDown class="PopupButton White" convar="cl_sniper_delay_unscope">
+							<Label text="#GameUI_Yes" value="1" id ="delayunzoomsniper0"/>
+							<Label text="#GameUI_No" value="0" id ="delayunzoomsniper1"/>
+						</CSGOSettingsEnumDropDown>
+					</Panel>
+					<Panel class="horizontal-separator"/>
+					
 					                         
 					<Panel class="SettingsMenuDropdownContainer">
 						<Label text="#SFUI_Settings_ViewmodelPos" class="half-width"/>
