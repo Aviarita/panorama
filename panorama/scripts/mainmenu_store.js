@@ -222,6 +222,32 @@ var MainMenuStore = ( function()
 		}
 	}
 
+	var _BAllowDisplayingItemInStore = function( FauxItemId )
+	{
+		                                                                                                       
+		var idToCheckForRestrictions = FauxItemId;
+		                                                                     
+		var bIsCouponCrate = InventoryAPI.IsCouponCrate( idToCheckForRestrictions );
+		if( bIsCouponCrate && ItemInfo.GetLootListCount( idToCheckForRestrictions ) > 0 )
+		{
+			idToCheckForRestrictions = InventoryAPI.GetLootListItemIdByIndex( idToCheckForRestrictions, 0 );
+		}
+		                         
+		var sDefinitionName = InventoryAPI.GetItemDefinitionName( idToCheckForRestrictions );
+		if ( sDefinitionName === "crate_stattrak_swap_tool" )
+			return true;
+		                       
+		var bIsDecodable = ItemInfo.ItemHasCapability( idToCheckForRestrictions, 'decodable' );
+		var sRestriction = bIsDecodable ? InventoryAPI.GetDecodeableRestriction( idToCheckForRestrictions ) : null;
+		if ( sRestriction === "restricted" || sRestriction === "xray" )
+		{
+			                                                                                                                                                              
+			return false;
+		}
+		                                
+		return true;
+	}
+
 	var _GetStoreItems = function( itemsByCategory )
 	{
 		var count = StoreAPI.GetBannerEntryCount();
@@ -264,6 +290,9 @@ var MainMenuStore = ( function()
 			}
 			else if ( StoreAPI.GetBannerEntryCustomFormatString( i ) === "new" )
 			{
+				if ( !_BAllowDisplayingItemInStore( FauxItemId ) )
+					continue;
+
 				if ( !itemsByCategory.newstore )
 				{
 					itemsByCategory.newstore = [];
@@ -273,6 +302,9 @@ var MainMenuStore = ( function()
 			}
 			else
 			{
+				if ( !_BAllowDisplayingItemInStore( FauxItemId ) )
+					continue;
+
 				if ( !itemsByCategory.store )
 				{
 					itemsByCategory.store = [];
@@ -496,7 +528,13 @@ var MainMenuStore = ( function()
 		{
 			elItem.BLoadLayoutSnippet( 'StoreEntry' );
 			_FillOutItemData( elItem, itemList[ i ], type );
-			_OnActivateStoreItem( elItem, itemList[ i ], type );
+
+			                                                                   
+			var activationType = type;
+			if ( type === 'coupons' && itemList[ i ] === m_itemNewReleases )
+				activationType = 'newstore';
+
+			_OnActivateStoreItem( elItem, itemList[ i ], activationType );
 		}
 		                                                    
 		else if ( typeof itemList[ i ] == "object" && elItem.BLoadLayoutSnippet( itemList[ i ].snippet_name ) )
@@ -641,12 +679,12 @@ var MainMenuStore = ( function()
 				displayItemId= InventoryAPI.GetLootListItemIdByIndex( id, 0 );
 			
 			if( displayItemId )
-				elItem.SetPanelEvent( 'onactivate', _ShowDecodePopup.bind( undefined, id, displayItemId ) );
+				elItem.SetPanelEvent( 'onactivate', _ShowDecodePopup.bind( undefined, id, displayItemId, type ) );
 			else
-				elItem.SetPanelEvent( 'onactivate', _ShowInpsectPopup.bind( undefined, id ) );	
+				elItem.SetPanelEvent( 'onactivate', _ShowInpsectPopup.bind( undefined, id, type ) );	
 		}
 		else
-			elItem.SetPanelEvent( 'onactivate', _ShowInpsectPopup.bind( undefined, id ) );
+			elItem.SetPanelEvent( 'onactivate', _ShowInpsectPopup.bind( undefined, id, type ) );
 	};
 
 	var _OpenOverlayToMarket = function( id )
@@ -659,8 +697,15 @@ var MainMenuStore = ( function()
 		StoreAPI.RecordUIEvent( "ViewOnMarket" );
 	};
 
-	var _ShowDecodePopup = function( id, displayItemId )
+	var _ShowDecodePopup = function( id, displayItemId, type )
 	{
+		                                                                                     
+		var strExtraSettings = '';
+		if ( type === 'newstore' )
+		{	                                                                                   
+			strExtraSettings = '&overridepurchasemultiple=1';
+		}
+
 		UiToolkitAPI.ShowCustomLayoutPopupParameters(
 			'',
 			'file://{resources}/layout/popups/popup_capability_decodable.xml',
@@ -671,11 +716,13 @@ var MainMenuStore = ( function()
 			'asyncforcehide=true'
 			+ '&' +
 			'storeitemid=' + id
+			+ strExtraSettings
 		);
 	};
 
 	var _ShowInpsectPopup = function( id )
 	{
+		                                                            
 		UiToolkitAPI.ShowCustomLayoutPopupParameters(
 			'',
 			'file://{resources}/layout/popups/popup_inventory_inspect.xml',
